@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CHICKEN CROSSING '79 - Cabinato Arcade Retro</title>
+    <style>
+        /* ==========================================================================
+           VARIABILI TEMA CRT (COLORE ARCADE '79, FOSFORO VERDE P1, FOSFORO AMBRA P3)
+           ========================================================================== */
+        :root {
+            --crt-bg: #0c0d14;
+            --crt-accent: #facc15;
+            --crt-text: #f8fafc;
+            --crt-dim: #475569;
+            --crt-glow: rgba(250, 204, 21, 0.45);
+            --crt-scanline: rgba(0, 0, 0, 0.36);
+        }
+
+        body.theme-green {
+            --crt-bg: #030b04;
+            --crt-accent: #33ff66;
+            --crt-text: #33ff66;
+            --crt-dim: #14532d;
+            --crt-glow: rgba(51, 255, 102, 0.55);
+        }
+
+        body.theme-amber {
+            --crt-bg: #0d0701;
+            --crt-accent: #ffb000;
+            --crt-text: #ffb000;
+            --crt-dim: #78350f;
+            --crt-glow: rgba(255, 176, 0, 0.55);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #080706;
+            background-image: radial-gradient(circle at center, #1e1b18 0%, #050404 100%);
+            color: var(--crt-text);
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        /* ==========================================================================
+           CABINATO ARCADE ANNI '70
+           ========================================================================== */
+        .cabinet {
+            width: 100%;
+            max-width: 920px;
+            background: linear-gradient(150deg, #27221d 0%, #151210 100%);
+            border: 4px solid #443b33;
+            border-radius: 18px;
+            box-shadow: 0 25px 65px rgba(0, 0, 0, 0.92), inset 0 2px 3px rgba(255, 255, 255, 0.08);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Marquee superiore */
+        .marquee {
+            background: linear-gradient(90deg, #181412 0%, #291d12 50%, #181412 100%);
+            border: 2px solid #57493d;
+            border-radius: 10px;
+            padding: 8px 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .marquee-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .coin-led {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
+            animation: ledBlink 1.5s infinite;
+        }
+
+        @keyframes ledBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
+        }
+
+        .marquee-brand h1 {
+            font-size: clamp(1rem, 2.5vw, 1.45rem);
+            letter-spacing: 2px;
+            color: #fde047;
+            text-shadow: 0 0 8px rgba(253, 224, 71, 0.45);
+        }
+
+        .marquee-brand span {
+            display: block;
+            font-size: 0.72rem;
+            color: #d6d3d1;
+            letter-spacing: 1px;
+        }
+
+        /* Pulsanti hardware sulla cornice */
+        .hw-switches {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hw-btn {
+            background: #1c1917;
+            color: #e7e5e4;
+            border: 1px solid #57534e;
+            border-radius: 6px;
+            padding: 6px 9px;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 2px 0 #090807;
+            transition: transform 0.1s, border-color 0.15s;
+        }
+
+        .hw-btn:hover {
+            border-color: #a8a29e;
+            background: #292524;
+        }
+
+        .hw-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .hw-btn.active {
+            border-color: var(--crt-accent);
+            color: var(--crt-accent);
+            box-shadow: 0 0 8px var(--crt-glow);
+        }
+
+        /* ==========================================================================
+           MONITOR CRT CURVO + SCANLINES
+           ========================================================================== */
+        .crt-bezel {
+            background: #060606;
+            padding: 12px;
+            border-radius: 22px;
+            border: 4px solid #292524;
+            box-shadow: inset 0 0 35px #000;
+        }
+
+        .crt-screen {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            max-height: 66vh;
+            background: var(--crt-bg);
+            border-radius: 24px / 16px;
+            overflow: hidden;
+            border: 2px solid var(--crt-dim);
+            box-shadow: 0 0 28px var(--crt-glow), inset 0 0 55px rgba(0, 0, 0, 0.85);
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .crt-scanlines {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(rgba(18, 16, 16, 0) 50%, var(--crt-scanline) 50%),
+                radial-gradient(circle at center, transparent 60%, rgba(0, 0, 0, 0.72) 100%);
+            background-size: 100% 4px, 100% 100%;
+            z-index: 10;
+            animation: crtPulse 0.14s infinite;
+        }
+
+        .crt-reflection {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(125deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 35%, transparent 60%);
+            z-index: 11;
+        }
+
+        @keyframes crtPulse {
+            0% { opacity: 0.96; }
+            50% { opacity: 1; }
+            100% { opacity: 0.97; }
+        }
+
+        /* ==========================================================================
+           PLANCIA ARCADE TOUCH / MOUSE INFERIORE
+           ========================================================================== */
+        .control-panel {
+            background: linear-gradient(180deg, #211d1a 0%, #12100e 100%);
+            border: 2px solid #38302a;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dpad-cluster {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dpad-col {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .arc-btn {
+            min-width: 52px;
+            height: 48px;
+            border-radius: 10px;
+            border: 2px solid #44403c;
+            background: radial-gradient(circle at 35% 35%, #44403c, #1c1917);
+            color: #f5f5f4;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #090807, 0 5px 10px rgba(0, 0, 0, 0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .arc-btn:active, .arc-btn.pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #090807;
+            border-color: var(--crt-accent);
+            color: var(--crt-accent);
+        }
+
+        .panel-instructions {
+            flex: 1;
+            min-width: 170px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #a8a29e;
+            line-height: 1.4;
+        }
+
+        .action-cluster {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-pause {
+            min-width: 68px;
+            height: 46px;
+            border-radius: 10px;
+            border: 2px solid #b45309;
+            background: radial-gradient(circle at 35% 35%, #d97706, #78350f);
+            color: #fff;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 0.78rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #451a03;
+            touch-action: manipulation;
+        }
+
+        .btn-pause:active, .btn-pause.pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #451a03;
+        }
+
+        .btn-start {
+            min-width: 86px;
+            height: 54px;
+            border-radius: 50px;
+            border: 2px solid #991b1b;
+            background: radial-gradient(circle at 35% 35%, #ef4444, #7f1d1d);
+            color: #fff;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #450a0a, 0 5px 12px rgba(0, 0, 0, 0.7);
+            touch-action: manipulation;
+        }
+
+        .btn-start:active, .btn-start.pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #450a0a;
+        }
+
+        @media (max-width: 640px) {
+            .crt-screen {
+                aspect-ratio: auto;
+                min-height: 420px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-color">
+
+    <div class="cabinet">
+        <!-- MARQUEE / TESTATA CABINATO -->
+        <header class="marquee">
+            <div class="marquee-brand">
+                <div class="coin-led" title="1 CREDIT INSERTED"></div>
+                <div>
+                    <h1>CHICKEN CROSSING '79</h1>
+                    <span>ATARI-STYLE HIGHWAY ARCADE • 1 PLAYER</span>
+                </div>
+            </div>
+
+            <div class="hw-switches">
+                <button class="hw-btn active" id="btnThemeColor" onclick="setScreenTheme('color')">COLORE '79</button>
+                <button class="hw-btn" id="btnThemeGreen" onclick="setScreenTheme('green')">P1 VERDE</button>
+                <button class="hw-btn" id="btnThemeAmber" onclick="setScreenTheme('amber')">P3 AMBRA</button>
+                <button class="hw-btn active" id="btnAudio" onclick="toggleAudio()">AUDIO: ON</button>
+                <button class="hw-btn active" id="btnTrafficSound" onclick="toggleTrafficHum()">TRAFFICO: ON</button>
+            </div>
+        </header>
+
+        <!-- MONITOR CRT CON VETRO CURVO -->
+        <main class="crt-bezel">
+            <div class="crt-screen">
+                <canvas id="gameCanvas"></canvas>
+                <div class="crt-scanlines"></div>
+                <div class="crt-reflection"></div>
+            </div>
+        </main>
+
+        <!-- PLANCIA CONTROLLI ARCADE -->
+        <footer class="control-panel">
+            <div class="dpad-cluster">
+                <button class="arc-btn" data-action="left" title="Sinistra (Freccia SX / A)">◄</button>
+                <div class="dpad-col">
+                    <button class="arc-btn" data-action="up" title="Avanti (Freccia SU / W)">▲</button>
+                    <button class="arc-btn" data-action="down" title="Indietro (Freccia GIÙ / S)">▼</button>
+                </div>
+                <button class="arc-btn" data-action="right" title="Destra (Freccia DX / D)">►</button>
+            </div>
+
+            <div class="panel-instructions">
+                <strong>TASTIERA:</strong> FRECCE / WASD per muovere il pollo<br>
+                <strong>SPAZIO / INVIO:</strong> Avvia • <strong>P:</strong> Pausa
+            </div>
+
+            <div class="action-cluster">
+                <button class="btn-pause" data-action="pause" title="Pausa (Tasto P)">PAUSA</button>
+                <button class="btn-start" data-action="start" title="Start / Rigioca (Spazio)">START</button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           1. MOTORE AUDIO PROCEDURALE (WEB AUDIO API) - SUONI ARCADE ANNI '70
+           ========================================================================== */
+        class ArcadeSoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.trafficEnabled = true;
+                this.trafficGain = null;
+                this.trafficStarted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        this.ctx = new AudioCtx();
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+                if (this.ctx && !this.trafficStarted) {
+                    this.setupTrafficHum();
+                }
+            }
+
+            // Rumore bianco filtrato a bassa frequenza per il rombo continuo dell'autostrada
+            setupTrafficHum() {
+                if (!this.ctx || this.trafficStarted) return;
+                this.trafficStarted = true;
+
+                const bufferSize = this.ctx.sampleRate * 2;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 135;
+
+                this.trafficGain = this.ctx.createGain();
+                this.trafficGain.gain.value = (this.enabled && this.trafficEnabled) ? 0.035 : 0;
+
+                noise.connect(filter);
+                filter.connect(this.trafficGain);
+                this.trafficGain.connect(this.ctx.destination);
+                noise.start();
+            }
+
+            updateTrafficVolume(isPlaying) {
+                if (!this.trafficGain || !this.ctx) return;
+                const target = (this.enabled && this.trafficEnabled && isPlaying) ? 0.035 : 0.0001;
+                this.trafficGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.08);
+            }
+
+            playTone(freq, type = 'square', duration = 0.08, volume = 0.14, slideTo = null) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, now);
+                if (slideTo) {
+                    osc.frequency.exponentialRampToValueAtTime(Math.max(25, slideTo), now + duration);
+                }
+
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + duration);
+            }
+
+            // "Cluck / Salto" del pollo ad ogni passo
+            playCluck() {
+                this.playTone(340, 'square', 0.055, 0.12, 580);
+                setTimeout(() => this.playTone(460, 'triangle', 0.04, 0.09, 310), 30);
+            }
+
+            // Clacson auto che sfreccia vicino al pollo
+            playHorn(pitch = 380) {
+                if (!this.enabled) return;
+                this.playTone(pitch, 'sawtooth', 0.11, 0.08);
+                setTimeout(() => this.playTone(pitch * 1.18, 'sawtooth', 0.14, 0.08), 115);
+            }
+
+            // Impatto comico / piume che volano
+            playSquash() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                this.playTone(280, 'sawtooth', 0.38, 0.22, 48);
+                const now = this.ctx.currentTime;
+                const len = Math.floor(this.ctx.sampleRate * 0.35);
+                const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+                const d = buf.getChannelData(0);
+                for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+
+                const src = this.ctx.createBufferSource();
+                src.buffer = buf;
+                const flt = this.ctx.createBiquadFilter();
+                flt.type = 'bandpass';
+                flt.frequency.value = 650;
+
+                const g = this.ctx.createGain();
+                g.gain.setValueAtTime(0.24, now);
+                g.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                src.connect(flt);
+                flt.connect(g);
+                g.connect(this.ctx.destination);
+                src.start(now);
+            }
+
+            // Fanfara vittoria livello superato
+            playLevelClear() {
+                const notes = [523.25, 659.25, 783.99, 1046.5];
+                notes.forEach((n, idx) => {
+                    setTimeout(() => this.playTone(n, 'square', 0.13, 0.15), idx * 95);
+                });
+            }
+
+            // Inserimento gettone / Start
+            playCoinStart() {
+                this.playTone(987.77, 'square', 0.08, 0.14);
+                setTimeout(() => this.playTone(1318.51, 'square', 0.24, 0.16), 80);
+            }
+
+            // Game Over
+            playGameOver() {
+                const notes = [392.0, 349.23, 329.63, 261.63];
+                notes.forEach((n, idx) => {
+                    setTimeout(() => this.playTone(n, 'sawtooth', 0.22, 0.15), idx * 180);
+                });
+            }
+        }
+
+        const sfx = new ArcadeSoundEngine();
+
+        /* ==========================================================================
+           2. GESTIONE TEMA SCHERMO CRT E RECORD IN LOCALSTORAGE
+           ========================================================================== */
+        const STORAGE_KEY = 'chicken_crossing_79_hiscore_v1';
+        let highScore = 0;
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) highScore = parseInt(saved, 10) || 0;
+        } catch (e) {}
+
+        function updateHighScore(newScore) {
+            if (newScore > highScore) {
+                highScore = newScore;
+                try {
+                    localStorage.setItem(STORAGE_KEY, String(highScore));
+                } catch (e) {}
+            }
+        }
+
+        let currentTheme = 'color'; // 'color' | 'green' | 'amber'
+
+        function setScreenTheme(theme) {
+            currentTheme = theme;
+            document.body.className = `theme-${theme}`;
+            document.getElementById('btnThemeColor').classList.toggle('active', theme === 'color');
+            document.getElementById('btnThemeGreen').classList.toggle('active', theme === 'green');
+            document.getElementById('btnThemeAmber').classList.toggle('active', theme === 'amber');
+            sfx.playTone(620, 'square', 0.04, 0.08);
+        }
+
+        function toggleAudio() {
+            sfx.enabled = !sfx.enabled;
+            const btn = document.getElementById('btnAudio');
+            btn.textContent = sfx.enabled ? 'AUDIO: ON' : 'AUDIO: OFF';
+            btn.classList.toggle('active', sfx.enabled);
+            sfx.updateTrafficVolume(game.state === 'playing');
+            if (sfx.enabled) sfx.playTone(700, 'square', 0.05, 0.08);
+        }
+
+        function toggleTrafficHum() {
+            sfx.trafficEnabled = !sfx.trafficEnabled;
+            const btn = document.getElementById('btnTrafficSound');
+            btn.textContent = sfx.trafficEnabled ? 'TRAFFICO: ON' : 'TRAFFICO: OFF';
+            btn.classList.toggle('active', sfx.trafficEnabled);
+            sfx.updateTrafficVolume(game.state === 'playing');
+        }
+
+        // Restituisce la tavolozza colori adatta al filtro CRT selezionato
+        function getPalette() {
+            if (currentTheme === 'green') {
+                return {
+                    bg: '#030b04',
+                    road: '#061408',
+                    sidewalk: '#0d2b12',
+                    median: '#0a220e',
+                    line: '#22c55e',
+                    lineDim: '#15803d',
+                    text: '#33ff66',
+                    accent: '#86efac',
+                    chickenBody: '#33ff66',
+                    chickenComb: '#86efac',
+                    chickenBeak: '#bbf7d0',
+                    sedan: '#22c55e',
+                    truck: '#16a34a',
+                    sport: '#86efac',
+                    headlight: '#dcfce7',
+                    taillight: '#15803d'
+                };
+            }
+            if (currentTheme === 'amber') {
+                return {
+                    bg: '#0d0701',
+                    road: '#140b02',
+                    sidewalk: '#2b1804',
+                    median: '#211203',
+                    line: '#f59e0b',
+                    lineDim: '#b45309',
+                    text: '#ffb000',
+                    accent: '#fde047',
+                    chickenBody: '#ffb000',
+                    chickenComb: '#fde047',
+                    chickenBeak: '#fef08a',
+                    sedan: '#f59e0b',
+                    truck: '#d97706',
+                    sport: '#fde047',
+                    headlight: '#fef9c3',
+                    taillight: '#92400e'
+                };
+            }
+            // Colore Arcade '79 (stile Atari VCS / Z80 raster)
+            return {
+                bg: '#0c0d14',
+                road: '#1a1c26',
+                sidewalk: '#334155',
+                median: '#273549',
+                line: '#facc15',
+                lineDim: '#94a3b8',
+                text: '#f8fafc',
+                accent: '#facc15',
+                chickenBody: '#fef08a',
+                chickenComb: '#ef4444',
+                chickenBeak: '#f97316',
+                sedan: '#38bdf8',
+                truck: '#a855f7',
+                sport: '#f43f5e',
+                headlight: '#fef9c3',
+                taillight: '#dc2626'
+            };
+        }
+
+        /* ==========================================================================
+           3. CONFIGURAZIONE CANVAS E GRIGLIA STRADALE (13 FASCE ORIZZONTALI)
+           ========================================================================== */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Risoluzione logica fissa 800x624 (13 righe da 48px ciascuna)
+        const LOGICAL_W = 800;
+        const ROW_H = 48;
+        const TOTAL_ROWS = 13; // Riga 0: HUD | Riga 1: Traguardo | Righe 2..6: Corsie Nord | Riga 7: Spartitraffico | Righe 8..11: Corsie Sud | Riga 12: Partenza
+        const LOGICAL_H = ROW_H * TOTAL_ROWS; // 624px
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.max(320, Math.floor(rect.width * dpr));
+            canvas.height = Math.max(240, Math.floor(rect.height * dpr));
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        /* ==========================================================================
+           4. LOGICA DI GIOCO "CHICKEN CROSSING '79"
+           ========================================================================== */
+        const game = {
+            state: 'title', // 'title' | 'playing' | 'paused' | 'level_clear' | 'gameover'
+            score: 0,
+            lives: 3,
+            level: 1,
+            levelTimer: 30, // Secondi per il bonus tempo
+            maxRowReached: 12,
+            transitionTimer: 0,
+            lastBonusEarned: 0,
+            hornCooldown: 0,
+
+            // Stato del pollo
+            chicken: {
+                x: LOGICAL_W / 2,
+                y: 12 * ROW_H + ROW_H / 2,
+                row: 12,
+                w: 30,
+                h: 30,
+                flapTimer: 0,
+                facing: 'up', // 'up' | 'down' | 'left' | 'right'
+                invulnTimer: 0,
+                squashedTimer: 0,
+                squashX: 0,
+                squashY: 0
+            },
+
+            lanes: [],
+            feathers: [],
+            floatingTexts: []
+        };
+
+        // Inizializza o ripristina la posizione del pollo alla partenza
+        function resetChicken(invulnerable = true) {
+            const c = game.chicken;
+            c.x = LOGICAL_W / 2;
+            c.row = 12;
+            c.y = c.row * ROW_H + ROW_H / 2;
+            c.facing = 'up';
+            c.flapTimer = 0;
+            c.squashedTimer = 0;
+            c.invulnTimer = invulnerable ? 1.8 : 0;
+            game.maxRowReached = 12;
+        }
+
+        // Genera le corsie di traffico in base al livello attuale
+        function buildTrafficLanes(level) {
+            game.lanes = [];
+            const speedMult = 1 + (level - 1) * 0.16;
+
+            // Configurazione delle 9 corsie stradali (righe 2..6 e 8..11)
+            const laneConfigs = [
+                // Corsie superiori (più veloci, vicine al traguardo)
+                { row: 2, dir: 1,  type: 'sport', baseSpeed: 235, count: 2 + (level > 2 ? 1 : 0) },
+                { row: 3, dir: -1, type: 'truck', baseSpeed: 125, count: 2 },
+                { row: 4, dir: 1,  type: 'sedan', baseSpeed: 175, count: 3 },
+                { row: 5, dir: -1, type: 'sport', baseSpeed: 215, count: 2 },
+                { row: 6, dir: 1,  type: 'sedan', baseSpeed: 150, count: 3 },
+                // Riga 7 = Spartitraffico centrale sicuro
+                // Corsie inferiori (subito dopo la partenza)
+                { row: 8,  dir: -1, type: 'truck', baseSpeed: 115, count: 2 + (level > 3 ? 1 : 0) },
+                { row: 9,  dir: 1,  type: 'sedan', baseSpeed: 165, count: 3 },
+                { row: 10, dir: -1, type: 'sport', baseSpeed: 205, count: 2 },
+                { row: 11, dir: 1,  type: 'sedan', baseSpeed: 135, count: 3 }
+            ];
+
+            laneConfigs.forEach((cfg, idx) => {
+                const vehicles = [];
+                const vWidth = cfg.type === 'truck' ? 98 : (cfg.type === 'sport' ? 54 : 60);
+                const vHeight = 30;
+                const spacing = (LOGICAL_W + 160) / cfg.count;
+
+                for (let i = 0; i < cfg.count; i++) {
+                    const startX = (i * spacing + (idx * 73)) % (LOGICAL_W + 140) - 70;
+                    vehicles.push({
+                        x: startX,
+                        y: cfg.row * ROW_H + (ROW_H - vHeight) / 2,
+                        w: vWidth,
+                        h: vHeight,
+                        dir: cfg.dir,
+                        speed: cfg.baseSpeed * speedMult * (0.95 + (idx % 3) * 0.06),
+                        type: cfg.type,
+                        honked: false
+                    });
+                }
+
+                game.lanes.push({
+                    row: cfg.row,
+                    dir: cfg.dir,
+                    vehicles
+                });
+            });
+        }
+
+        function startNewGame() {
+            sfx.init();
+            sfx.playCoinStart();
+            game.score = 0;
+            game.lives = 3;
+            game.level = 1;
+            game.levelTimer = 30;
+            game.feathers = [];
+            game.floatingTexts = [];
+            resetChicken(false);
+            buildTrafficLanes(game.level);
+            game.state = 'playing';
+            sfx.updateTrafficVolume(true);
+        }
+
+        function spawnFeathers(x, y, count = 18) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const spd = 40 + Math.random() * 140;
+                game.feathers.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * spd,
+                    vy: Math.sin(angle) * spd - 30,
+                    rot: Math.random() * Math.PI * 2,
+                    vRot: (Math.random() - 0.5) * 8,
+                    life: 0.75 + Math.random() * 0.45
+                });
+            }
+        }
+
+        function addFloatingText(text, x, y) {
+            game.floatingTexts.push({ text, x, y, life: 1.1 });
+        }
+
+        // Movimento a passi discreti su griglia arcade (come Frogger / Freeway)
+        function moveChicken(dir) {
+            if (game.state !== 'playing') return;
+            const c = game.chicken;
+            if (c.squashedTimer > 0) return;
+
+            const stepX = 40;
+            let moved = false;
+
+            if (dir === 'up' && c.row > 1) {
+                c.row--;
+                c.facing = 'up';
+                moved = true;
+            } else if (dir === 'down' && c.row < 12) {
+                c.row++;
+                c.facing = 'down';
+                moved = true;
+            } else if (dir === 'left' && c.x - stepX >= 28) {
+                c.x -= stepX;
+                c.facing = 'left';
+                moved = true;
+            } else if (dir === 'right' && c.x + stepX <= LOGICAL_W - 28) {
+                c.x += stepX;
+                c.facing = 'right';
+                moved = true;
+            }
+
+            if (moved) {
+                c.y = c.row * ROW_H + ROW_H / 2;
+                c.flapTimer = 0.22;
+                sfx.playCluck();
+
+                // Punti per ogni nuova corsia avanzata verso nord
+                if (c.row < game.maxRowReached) {
+                    game.maxRowReached = c.row;
+                    game.score += 10;
+                    updateHighScore(game.score);
+                }
+
+                // Controllo raggiungimento marciapiede traguardo (riga 1)
+                if (c.row === 1) {
+                    const timeBonus = Math.max(0, Math.floor(game.levelTimer) * 15);
+                    const levelBonus = 200 * game.level;
+                    game.lastBonusEarned = timeBonus + levelBonus;
+                    game.score += game.lastBonusEarned;
+                    updateHighScore(game.score);
+
+                    sfx.playLevelClear();
+                    addFloatingText(`+${game.lastBonusEarned} BONUS!`, c.x, c.y);
+                    game.state = 'level_clear';
+                    game.transitionTimer = 2.0;
+                    sfx.updateTrafficVolume(false);
+                }
+            }
+        }
+
+        function handleChickenHit() {
+            const c = game.chicken;
+            sfx.playSquash();
+            spawnFeathers(c.x, c.y, 22);
+            c.squashedTimer = 1.15;
+            c.squashX = c.x;
+            c.squashY = c.y;
+            game.lives--;
+            addFloatingText('SPLAT!', c.x, c.y - 12);
+        }
+
+        /* ==========================================================================
+           5. GESTIONE INPUT (TASTIERA + PLANCIA ARCADE TOUCH / MOUSE)
+           ========================================================================== */
+        window.addEventListener('keydown', (e) => {
+            const key = e.key;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(key)) {
+                e.preventDefault();
+            }
+
+            if (game.state === 'title' || game.state === 'gameover') {
+                if (key === ' ' || key === 'Enter') {
+                    startNewGame();
+                }
+                return;
+            }
+
+            if (key === 'p' || key === 'P') {
+                togglePause();
+                return;
+            }
+
+            if (game.state === 'playing') {
+                if (key === 'ArrowUp' || key === 'w' || key === 'W') moveChicken('up');
+                else if (key === 'ArrowDown' || key === 's' || key === 'S') moveChicken('down');
+                else if (key === 'ArrowLeft' || key === 'a' || key === 'A') moveChicken('left');
+                else if (key === 'ArrowRight' || key === 'd' || key === 'D') moveChicken('right');
+            }
+        });
+
+        function togglePause() {
+            if (game.state === 'playing') {
+                game.state = 'paused';
+                sfx.updateTrafficVolume(false);
+            } else if (game.state === 'paused') {
+                game.state = 'playing';
+                sfx.updateTrafficVolume(true);
+            }
+        }
+
+        // Collegamento pulsanti fisici sulla plancia inferiore (touch + mouse)
+        document.querySelectorAll('[data-action]').forEach(btn => {
+            const action = btn.getAttribute('data-action');
+
+            const trigger = (e) => {
+                e.preventDefault();
+                sfx.init();
+                btn.classList.add('pressed');
+
+                if (action === 'start') {
+                    if (game.state === 'title' || game.state === 'gameover') {
+                        startNewGame();
+                    } else if (game.state === 'paused') {
+                        togglePause();
+                    }
+                } else if (action === 'pause') {
+                    togglePause();
+                } else if (game.state === 'playing') {
+                    moveChicken(action);
+                }
+            };
+
+            const release = (e) => {
+                e.preventDefault();
+                btn.classList.remove('pressed');
+            };
+
+            btn.addEventListener('mousedown', trigger);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+            btn.addEventListener('touchstart', trigger, { passive: false });
+            btn.addEventListener('touchend', release, { passive: false });
+            btn.addEventListener('touchcancel', release, { passive: false });
+        });
+
+        /* ==========================================================================
+           6. AGGIORNAMENTO FISICA E LOGICA (UPDATE)
+           ========================================================================== */
+        function updateGame(dt) {
+            // Aggiorna sempre piume e testi fluttuanti
+            for (let i = game.feathers.length - 1; i >= 0; i--) {
+                const f = game.feathers[i];
+                f.x += f.vx * dt;
+                f.y += f.vy * dt;
+                f.vy += 120 * dt;
+                f.rot += f.vRot * dt;
+                f.life -= dt;
+                if (f.life <= 0) game.feathers.splice(i, 1);
+            }
+
+            for (let i = game.floatingTexts.length - 1; i >= 0; i--) {
+                const ft = game.floatingTexts[i];
+                ft.y -= 28 * dt;
+                ft.life -= dt;
+                if (ft.life <= 0) game.floatingTexts.splice(i, 1);
+            }
+
+            // Aggiorna movimento veicoli anche nella schermata titolo per effetto "Attract Mode"
+            if (game.state === 'title' || game.state === 'playing') {
+                game.lanes.forEach(lane => {
+                    lane.vehicles.forEach(v => {
+                        v.x += v.dir * v.speed * dt;
+
+                        // Wrap-around fuori dallo schermo
+                        if (v.dir === 1 && v.x > LOGICAL_W + 90) {
+                            v.x = -v.w - 40;
+                            v.honked = false;
+                        } else if (v.dir === -1 && v.x + v.w < -90) {
+                            v.x = LOGICAL_W + 40;
+                            v.honked = false;
+                        }
+                    });
+                });
+            }
+
+            if (game.state === 'level_clear') {
+                game.transitionTimer -= dt;
+                if (game.transitionTimer <= 0) {
+                    game.level++;
+                    game.levelTimer = Math.max(18, 32 - game.level);
+                    resetChicken(true);
+                    buildTrafficLanes(game.level);
+                    game.state = 'playing';
+                    sfx.updateTrafficVolume(true);
+                }
+                return;
+            }
+
+            if (game.state !== 'playing') return;
+
+            const c = game.chicken;
+            if (c.flapTimer > 0) c.flapTimer = Math.max(0, c.flapTimer - dt);
+            if (c.invulnTimer > 0) c.invulnTimer = Math.max(0, c.invulnTimer - dt);
+            if (game.hornCooldown > 0) game.hornCooldown = Math.max(0, game.hornCooldown - dt);
+
+            // Timer bonus livello
+            game.levelTimer = Math.max(0, game.levelTimer - dt);
+
+            // Gestione animazione pollo schiacciato dopo impatto
+            if (c.squashedTimer > 0) {
+                c.squashedTimer -= dt;
+                if (c.squashedTimer <= 0) {
+                    if (game.lives <= 0) {
+                        game.state = 'gameover';
+                        sfx.updateTrafficVolume(false);
+                        sfx.playGameOver();
+                    } else {
+                        resetChicken(true);
+                    }
+                }
+                return;
+            }
+
+            // Controllo collisioni e clacson di prossimità
+            const hitBoxMargin = 6;
+            const cLeft = c.x - c.w / 2 + hitBoxMargin;
+            const cRight = c.x + c.w / 2 - hitBoxMargin;
+            const cTop = c.y - c.h / 2 + hitBoxMargin;
+            const cBottom = c.y + c.h / 2 - hitBoxMargin;
+
+            for (const lane of game.lanes) {
+                if (lane.row !== c.row) continue;
+
+                for (const v of lane.vehicles) {
+                    const vLeft = v.x + 3;
+                    const vRight = v.x + v.w - 3;
+                    const vTop = v.y + 3;
+                    const vBottom = v.y + v.h - 3;
+
+                    // Clacson se un'auto sta arrivando veloce nella stessa corsia
+                    if (!v.honked && game.hornCooldown <= 0) {
+                        const dist = v.dir === 1 ? (cLeft - vRight) : (vLeft - cRight);
+                        if (dist > 15 && dist < 135) {
+                            v.honked = true;
+                            game.hornCooldown = 1.4;
+                            sfx.playHorn(v.type === 'truck' ? 230 : 410);
+                        }
+                    }
+
+                    // Verifica intersezione rettangoli
+                    if (cInvulnerableCheck(c)) continue;
+
+                    if (cRight > vLeft && cLeft < vRight && cBottom > vTop && cTop < vBottom) {
+                        handleChickenHit();
+                        return;
+                    }
+                }
+            }
+        }
+
+        function cInvulnerableCheck(c) {
+            return c.invulnTimer > 0;
+        }
+
+        /* ==========================================================================
+           7. RENDERING GRAFICO RETRO ANNI '70 (SPRITE PROCEDURALI SU CANVAS)
+           ========================================================================== */
+        function drawText(text, x, y, size = 20, align = 'center', color = null) {
+            const pal = getPalette();
+            ctx.save();
+            ctx.font = `bold ${size}px "Courier New", Courier, monospace`;
+            ctx.textAlign = align;
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = color || pal.text;
+            ctx.shadowColor = color || pal.text;
+            ctx.shadowBlur = 5;
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+
+        // Disegna l'ambiente autostradale (marciapiedi, spartitraffico, corsie tratteggiate)
+        function drawHighway(pal) {
+            // Sfondo generale
+            ctx.fillStyle = pal.bg;
+            ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+            // Fascia traguardo in alto (Riga 1)
+            ctx.fillStyle = pal.sidewalk;
+            ctx.fillRect(0, ROW_H, LOGICAL_W, ROW_H);
+            // Motivo a scacchiera retro sul traguardo
+            ctx.fillStyle = pal.lineDim;
+            for (let x = 0; x < LOGICAL_W; x += 32) {
+                ctx.fillRect(x, ROW_H, 16, 6);
+                ctx.fillRect(x + 16, ROW_H + ROW_H - 6, 16, 6);
+            }
+
+            // Asfalto corsie Nord (Righe 2..6)
+            ctx.fillStyle = pal.road;
+            ctx.fillRect(0, 2 * ROW_H, LOGICAL_W, 5 * ROW_H);
+
+            // Spartitraffico centrale sicuro (Riga 7)
+            ctx.fillStyle = pal.median;
+            ctx.fillRect(0, 7 * ROW_H, LOGICAL_W, ROW_H);
+            ctx.strokeStyle = pal.line;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 7 * ROW_H + 2);
+            ctx.lineTo(LOGICAL_W, 7 * ROW_H + 2);
+            ctx.moveTo(0, 8 * ROW_H - 2);
+            ctx.lineTo(LOGICAL_W, 8 * ROW_H - 2);
+            ctx.stroke();
+
+            // Asfalto corsie Sud (Righe 8..11)
+            ctx.fillStyle = pal.road;
+            ctx.fillRect(0, 8 * ROW_H, LOGICAL_W, 4 * ROW_H);
+
+            // Marciapiede di partenza (Riga 12)
+            ctx.fillStyle = pal.sidewalk;
+            ctx.fillRect(0, 12 * ROW_H, LOGICAL_W, ROW_H);
+            ctx.fillStyle = pal.lineDim;
+            ctx.fillRect(0, 12 * ROW_H, LOGICAL_W, 4);
+
+            // Linee tratteggiate di separazione corsie
+            ctx.fillStyle = pal.lineDim;
+            const dashedRows = [3, 4, 5, 6, 9, 10, 11];
+            dashedRows.forEach(r => {
+                const y = r * ROW_H - 1;
+                for (let x = 14; x < LOGICAL_W; x += 48) {
+                    ctx.fillRect(x, y, 24, 2);
+                }
+            });
+        }
+
+        // Disegna un veicolo retro anni '70 (berlina, camion, auto sportiva)
+        function drawVehicle(v, pal) {
+            ctx.save();
+            ctx.translate(v.x, v.y);
+
+            const bodyColor = v.type === 'truck' ? pal.truck : (v.type === 'sport' ? pal.sport : pal.sedan);
+            ctx.fillStyle = bodyColor;
+            ctx.strokeStyle = pal.text;
+            ctx.lineWidth = 1.5;
+
+            if (v.type === 'truck') {
+                // Camion lungo con cabina e rimorchio
+                const cabW = 20;
+                const trailerW = v.w - cabW - 4;
+                if (v.dir === 1) {
+                    ctx.fillRect(0, 2, trailerW, v.h - 4);
+                    ctx.strokeRect(0, 2, trailerW, v.h - 4);
+                    ctx.fillRect(trailerW + 4, 4, cabW, v.h - 8);
+                    // Parabrezza cabina
+                    ctx.fillStyle = pal.bg;
+                    ctx.fillRect(trailerW + 14, 7, 7, v.h - 14);
+                } else {
+                    ctx.fillRect(0, 4, cabW, v.h - 8);
+                    ctx.fillStyle = pal.bg;
+                    ctx.fillRect(3, 7, 7, v.h - 14);
+                    ctx.fillStyle = bodyColor;
+                    ctx.fillRect(cabW + 4, 2, trailerW, v.h - 4);
+                    ctx.strokeRect(cabW + 4, 2, trailerW, v.h - 4);
+                }
+            } else if (v.type === 'sport') {
+                // Auto sportiva affusolata con striscia centrale
+                ctx.fillRect(2, 4, v.w - 4, v.h - 8);
+                ctx.fillStyle = pal.bg;
+                // Abitacolo
+                const cabinX = v.dir === 1 ? 14 : 18;
+                ctx.fillRect(cabinX, 7, 18, v.h - 14);
+                // Striscia racing
+                ctx.fillStyle = pal.accent;
+                ctx.fillRect(4, v.h / 2 - 2, v.w - 8, 4);
+            } else {
+                // Berlina classica anni '70
+                ctx.fillRect(2, 3, v.w - 4, v.h - 6);
+                ctx.strokeRect(2, 3, v.w - 4, v.h - 6);
+                // Finestrini
+                ctx.fillStyle = pal.bg;
+                ctx.fillRect(14, 6, v.w - 28, v.h - 12);
+            }
+
+            // Ruote nere
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(8, 0, 11, 3);
+            ctx.fillRect(v.w - 19, 0, 11, 3);
+            ctx.fillRect(8, v.h - 3, 11, 3);
+            ctx.fillRect(v.w - 19, v.h - 3, 11, 3);
+
+            // Fari anteriori luminosi + cono di luce e luci posteriori rosse
+            if (v.dir === 1) {
+                ctx.fillStyle = pal.headlight;
+                ctx.fillRect(v.w - 3, 5, 4, 5);
+                ctx.fillRect(v.w - 3, v.h - 10, 4, 5);
+                // Fascio fari
+                ctx.globalAlpha = 0.16;
+                ctx.beginPath();
+                ctx.moveTo(v.w, 5);
+                ctx.lineTo(v.w + 34, -3);
+                ctx.lineTo(v.w + 34, v.h + 3);
+                ctx.lineTo(v.w, v.h - 5);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
+                ctx.fillStyle = pal.taillight;
+                ctx.fillRect(-1, 6, 3, 5);
+                ctx.fillRect(-1, v.h - 11, 3, 5);
+            } else {
+                ctx.fillStyle = pal.headlight;
+                ctx.fillRect(-1, 5, 4, 5);
+                ctx.fillRect(-1, v.h - 10, 4, 5);
+                ctx.globalAlpha = 0.16;
+                ctx.beginPath();
+                ctx.moveTo(0, 5);
+                ctx.lineTo(-34, -3);
+                ctx.lineTo(-34, v.h + 3);
+                ctx.lineTo(0, v.h - 5);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
+                ctx.fillStyle = pal.taillight;
+                ctx.fillRect(v.w - 2, 6, 3, 5);
+                ctx.fillRect(v.w - 2, v.h - 11, 3, 5);
+            }
+
+            ctx.restore();
+        }
+
+        // Disegna il pollo pixel/vettoriale animato
+        function drawChicken(pal) {
+            const c = game.chicken;
+
+            // Se è stato appena investito, disegna il pollo schiacciato stile cartoon '70
+            if (c.squashedTimer > 0) {
+                ctx.save();
+                ctx.translate(c.squashX, c.squashY);
+                ctx.fillStyle = pal.chickenBody;
+                ctx.fillRect(-18, -5, 36, 10);
+                ctx.fillStyle = pal.chickenComb;
+                ctx.fillRect(-6, -8, 12, 4);
+                ctx.fillStyle = pal.chickenBeak;
+                ctx.fillRect(14, -3, 7, 5);
+                ctx.restore();
+                return;
+            }
+
+            // Lampeggio durante l'invulnerabilità iniziale
+            if (c.invulnTimer > 0 && Math.floor(c.invulnTimer * 12) % 2 === 0) {
+                return;
+            }
+
+            ctx.save();
+            ctx.translate(c.x, c.y);
+
+            // Leggero saltello verticale quando sbatte le ali
+            const hopOffset = c.flapTimer > 0 ? -Math.sin((c.flapTimer / 0.22) * Math.PI) * 5 : 0;
+            ctx.translate(0, hopOffset);
+
+            const wingSpread = c.flapTimer > 0 ? 7 : 2;
+
+            // Zampe arancioni
+            ctx.fillStyle = pal.chickenBeak;
+            ctx.fillRect(-6, 9, 4, 6);
+            ctx.fillRect(2, 9, 4, 6);
+
+            // Ali laterali che sbattono
+            ctx.fillStyle = pal.chickenBody;
+            ctx.fillRect(-11 - wingSpread, -3, 5 + wingSpread, 10);
+            ctx.fillRect(6, -3, 5 + wingSpread, 10);
+
+            // Corpo paffuto pixel-art
+            ctx.fillRect(-10, -8, 20, 18);
+            // Testa
+            ctx.fillRect(-7, -14, 14, 8);
+
+            // Cresta rossa in cima
+            ctx.fillStyle = pal.chickenComb;
+            ctx.fillRect(-3, -18, 6, 4);
+
+            // Becco e occhi in base alla direzione
+            ctx.fillStyle = pal.chickenBeak;
+            if (c.facing === 'left') {
+                ctx.fillRect(-12, -11, 5, 4);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(-5, -12, 2, 2);
+            } else if (c.facing === 'right') {
+                ctx.fillRect(7, -11, 5, 4);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(3, -12, 2, 2);
+            } else {
+                ctx.fillRect(-2, -11, 4, 4);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(-5, -13, 2, 2);
+                ctx.fillRect(3, -13, 2, 2);
+            }
+
+            ctx.restore();
+        }
+
+        // Disegna una mini-icona pollo per il contatore vite nell'HUD
+        function drawMiniChicken(x, y, pal) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.fillStyle = pal.chickenBody;
+            ctx.fillRect(-6, -5, 12, 10);
+            ctx.fillRect(-4, -9, 8, 5);
+            ctx.fillStyle = pal.chickenComb;
+            ctx.fillRect(-2, -12, 4, 3);
+            ctx.fillStyle = pal.chickenBeak;
+            ctx.fillRect(-1, -7, 3, 2);
+            ctx.restore();
+        }
+
+        // Barra superiore punteggio, vite, livello e timer
+        function drawHUD(pal) {
+            ctx.fillStyle = pal.bg;
+            ctx.fillRect(0, 0, LOGICAL_W, ROW_H);
+            ctx.fillStyle = pal.lineDim;
+            ctx.fillRect(0, ROW_H - 2, LOGICAL_W, 2);
+
+            drawText(`1UP: ${String(game.score).padStart(6, '0')}`, 20, 24, 18, 'left', pal.text);
+            drawText(`HI: ${String(highScore).padStart(6, '0')}`, LOGICAL_W / 2 - 45, 24, 18, 'center', pal.accent);
+            drawText(`LV:${game.level}`, LOGICAL_W / 2 + 95, 24, 18, 'center', pal.text);
+
+            // Barra tempo bonus
+            const timeSec = Math.ceil(game.levelTimer);
+            drawText(`T:${String(timeSec).padStart(2, '0')}`, LOGICAL_W - 145, 24, 18, 'right', timeSec <= 5 ? pal.chickenComb : pal.text);
+
+            // Vite rimanenti (iconcine pollo)
+            for (let i = 0; i < game.lives; i++) {
+                drawMiniChicken(LOGICAL_W - 110 + i * 28, 25, pal);
+            }
+        }
+
+        // Schermate sovrapposte (Titolo, Pausa, Livello Superato, Game Over)
+        function drawOverlayScreens(pal) {
+            if (game.state === 'playing') return;
+
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
+            ctx.fillRect(70, 120, LOGICAL_W - 140, LOGICAL_H - 210);
+            ctx.strokeStyle = pal.accent;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(70, 120, LOGICAL_W - 140, LOGICAL_H - 210);
+
+            if (game.state === 'title') {
+                drawText("CHICKEN CROSSING '79", LOGICAL_W / 2, 185, 34, 'center', pal.accent);
+                drawText('ATTRAVERSA L\'AUTOSTRADA SENZA FARTI PRENDERE!', LOGICAL_W / 2, 232, 16, 'center', pal.text);
+
+                // Disegna un pollo grande decorativo al centro
+                ctx.save();
+                ctx.translate(LOGICAL_W / 2, 305);
+                ctx.scale(2.4, 2.4);
+                ctx.fillStyle = pal.chickenBody;
+                ctx.fillRect(-10, -8, 20, 18);
+                ctx.fillRect(-7, -14, 14, 8);
+                ctx.fillStyle = pal.chickenComb;
+                ctx.fillRect(-3, -18, 6, 4);
+                ctx.fillStyle = pal.chickenBeak;
+                ctx.fillRect(-2, -11, 4, 4);
+                ctx.restore();
+
+                drawText('FRECCE / WASD: MUOVI   •   P: PAUSA', LOGICAL_W / 2, 378, 15, 'center', pal.text);
+                if (Math.floor(Date.now() / 450) % 2 === 0) {
+                    drawText('>>> PREMI START O SPAZIO PER GIOCARE <<<', LOGICAL_W / 2, 430, 19, 'center', pal.accent);
+                }
+            } else if (game.state === 'paused') {
+                drawText('GIOCO IN PAUSA', LOGICAL_W / 2, 275, 34, 'center', pal.accent);
+                drawText('PREMI P O START PER CONTINUARE', LOGICAL_W / 2, 330, 18, 'center', pal.text);
+            } else if (game.state === 'level_clear') {
+                drawText(`LIVELLO ${game.level} SUPERATO!`, LOGICAL_W / 2, 260, 32, 'center', pal.accent);
+                drawText(`BONUS TEMPO & TRAFFICO: +${game.lastBonusEarned}`, LOGICAL_W / 2, 315, 20, 'center', pal.text);
+                drawText('PREPARATI AL PROSSIMO TURNO...', LOGICAL_W / 2, 360, 16, 'center', pal.text);
+            } else if (game.state === 'gameover') {
+                drawText('GAME OVER', LOGICAL_W / 2, 225, 42, 'center', pal.chickenComb);
+                drawText(`PUNTEGGIO FINALE: ${game.score}`, LOGICAL_W / 2, 285, 22, 'center', pal.text);
+                drawText(`RECORD MASSIMO: ${highScore}`, LOGICAL_W / 2, 325, 20, 'center', pal.accent);
+                if (Math.floor(Date.now() / 450) % 2 === 0) {
+                    drawText('PREMI START O SPAZIO PER RIGIOCARE', LOGICAL_W / 2, 395, 19, 'center', pal.text);
+                }
+            }
+
+            ctx.restore();
+        }
+
+        function renderScene() {
+            const pal = getPalette();
+            ctx.save();
+
+            // Scala dalla risoluzione logica 800x624 alle dimensioni reali del canvas
+            const scaleX = canvas.width / LOGICAL_W;
+            const scaleY = canvas.height / LOGICAL_H;
+            ctx.scale(scaleX, scaleY);
+
+            drawHighway(pal);
+
+            // Veicoli
+            game.lanes.forEach(lane => {
+                lane.vehicles.forEach(v => drawVehicle(v, pal));
+            });
+
+            // Pollo
+            if (game.state !== 'title') {
+                drawChicken(pal);
+            }
+
+            // Piume volanti
+            ctx.fillStyle = pal.chickenBody;
+            game.feathers.forEach(f => {
+                ctx.save();
+                ctx.translate(f.x, f.y);
+                ctx.rotate(f.rot);
+                ctx.fillRect(-5, -2, 10, 4);
+                ctx.restore();
+            });
+
+            // Testi punteggio fluttuanti
+            game.floatingTexts.forEach(ft => {
+                drawText(ft.text, ft.x, ft.y, 18, 'center', pal.accent);
+            });
+
+            drawHUD(pal);
+            drawOverlayScreens(pal);
+
+            ctx.restore();
+        }
+
+        /* ==========================================================================
+           8. LOOP PRINCIPALE DI GIOCO (REQUESTANIMATIONFRAME)
+           ========================================================================== */
+        let lastFrameTime = 0;
+
+        function gameLoop(timestamp) {
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            const dt = Math.min((timestamp - lastFrameTime) / 1000, 0.05);
+            lastFrameTime = timestamp;
+
+            updateGame(dt);
+            renderScene();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = function () {
+            resizeCanvas();
+            buildTrafficLanes(1);
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
