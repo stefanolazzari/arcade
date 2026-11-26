@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NIGHT STALKER '79 - Stealth Horror Cabinato Retro</title>
+    <style>
+        /* ==========================================================================
+           VARIABILI TEMA CRT / PHOSPHOR HORROR ('79 NOTTE BLU, P1 VERDE, P22 ROSSO)
+           ========================================================================== */
+        :root {
+            --crt-bg: #050811;
+            --crt-accent: #f59e0b;
+            --crt-text: #e2e8f0;
+            --crt-dim: #1e293b;
+            --crt-danger: #ef4444;
+            --crt-glow: rgba(245, 158, 11, 0.45);
+            --crt-scanline: rgba(0, 0, 0, 0.38);
+        }
+
+        body.theme-green {
+            --crt-bg: #020a04;
+            --crt-accent: #33ff66;
+            --crt-text: #33ff66;
+            --crt-dim: #0f3d1e;
+            --crt-danger: #a3e635;
+            --crt-glow: rgba(51, 255, 102, 0.55);
+        }
+
+        body.theme-red {
+            --crt-bg: #0d0204;
+            --crt-accent: #ff4d4d;
+            --crt-text: #fecaca;
+            --crt-dim: #450a0a;
+            --crt-danger: #ff1e1e;
+            --crt-glow: rgba(255, 77, 77, 0.55);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #060607;
+            background-image: radial-gradient(circle at center, #1a181c 0%, #040405 100%);
+            color: var(--crt-text);
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+
+        /* ==========================================================================
+           CABINATO TERMINALE HORROR ANNI '70/'80
+           ========================================================================== */
+        .cabinet {
+            width: 100%;
+            max-width: 960px;
+            background: linear-gradient(155deg, #232024 0%, #121013 100%);
+            border: 4px solid #3c373e;
+            border-radius: 18px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95), inset 0 2px 3px rgba(255, 255, 255, 0.07);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Marquee superiore */
+        .marquee {
+            background: linear-gradient(90deg, #110f14 0%, #24161a 50%, #110f14 100%);
+            border: 2px solid #4c3b42;
+            border-radius: 10px;
+            padding: 8px 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .marquee-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rec-led {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
+            animation: ledPulse 1.4s infinite;
+        }
+
+        @keyframes ledPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+
+        .marquee-brand h1 {
+            font-size: clamp(1rem, 2.5vw, 1.45rem);
+            letter-spacing: 2px;
+            color: var(--crt-accent);
+            text-shadow: 0 0 10px var(--crt-glow);
+        }
+
+        .marquee-brand span {
+            display: block;
+            font-size: 0.72rem;
+            color: #a1a1aa;
+            letter-spacing: 1px;
+        }
+
+        .hw-switches {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hw-btn {
+            background: #18181b;
+            color: #e4e4e7;
+            border: 1px solid #52525b;
+            border-radius: 6px;
+            padding: 6px 9px;
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 2px 0 #09090b;
+            transition: transform 0.1s, border-color 0.15s;
+        }
+
+        .hw-btn:hover {
+            border-color: #a1a1aa;
+            background: #27272a;
+        }
+
+        .hw-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .hw-btn.active {
+            border-color: var(--crt-accent);
+            color: var(--crt-accent);
+            box-shadow: 0 0 8px var(--crt-glow);
+        }
+
+        /* ==========================================================================
+           MONITOR CRT CURVO + SCANLINES
+           ========================================================================== */
+        .crt-bezel {
+            background: #050506;
+            padding: 12px;
+            border-radius: 22px;
+            border: 4px solid #27272a;
+            box-shadow: inset 0 0 40px #000;
+        }
+
+        .crt-screen {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            max-height: 67vh;
+            background: var(--crt-bg);
+            border-radius: 24px / 16px;
+            overflow: hidden;
+            border: 2px solid var(--crt-dim);
+            box-shadow: 0 0 30px var(--crt-glow), inset 0 0 60px rgba(0, 0, 0, 0.9);
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .crt-scanlines {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(rgba(18, 16, 16, 0) 50%, var(--crt-scanline) 50%),
+                radial-gradient(circle at center, transparent 58%, rgba(0, 0, 0, 0.78) 100%);
+            background-size: 100% 4px, 100% 100%;
+            z-index: 10;
+            animation: crtFlicker 0.14s infinite;
+        }
+
+        .crt-reflection {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(125deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 35%, transparent 60%);
+            z-index: 11;
+        }
+
+        @keyframes crtFlicker {
+            0% { opacity: 0.96; }
+            50% { opacity: 1; }
+            100% { opacity: 0.97; }
+        }
+
+        /* ==========================================================================
+           PLANCIA ARCADE TOUCH / MOUSE INFERIORE
+           ========================================================================== */
+        .control-panel {
+            background: linear-gradient(180deg, #1f1d22 0%, #111013 100%);
+            border: 2px solid #35313a;
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dpad-cluster {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dpad-col {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .arc-btn {
+            min-width: 50px;
+            height: 46px;
+            border-radius: 10px;
+            border: 2px solid #3f3f46;
+            background: radial-gradient(circle at 35% 35%, #3f3f46, #18181b);
+            color: #f4f4f5;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #09090b, 0 5px 10px rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .arc-btn:active, .arc-btn.pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #09090b;
+            border-color: var(--crt-accent);
+            color: var(--crt-accent);
+        }
+
+        .panel-instructions {
+            flex: 1;
+            min-width: 180px;
+            text-align: center;
+            font-size: 0.74rem;
+            color: #a1a1aa;
+            line-height: 1.4;
+        }
+
+        .action-cluster {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-run {
+            min-width: 78px;
+            height: 48px;
+            border-radius: 10px;
+            border: 2px solid #b45309;
+            background: radial-gradient(circle at 35% 35%, #d97706, #78350f);
+            color: #fff;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 0.76rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #451a03;
+            touch-action: manipulation;
+        }
+
+        .btn-run:active, .btn-run.pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #451a03;
+            border-color: #fde047;
+        }
+
+        .btn-hide {
+            min-width: 112px;
+            height: 54px;
+            border-radius: 50px;
+            border: 2px solid #991b1b;
+            background: radial-gradient(circle at 35% 35%, #dc2626, #7f1d1d);
+            color: #fff;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #450a0a, 0 5px 12px rgba(0, 0, 0, 0.75);
+            touch-action: manipulation;
+            text-align: center;
+            line-height: 1.15;
+            padding: 0 10px;
+        }
+
+        .btn-hide:active, .btn-hide.pressed {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #450a0a;
+        }
+
+        @media (max-width: 680px) {
+            .crt-screen {
+                aspect-ratio: auto;
+                min-height: 430px;
+            }
+        }
+    </style>
+</head>
+<body class="theme-blue">
+
+    <div class="cabinet">
+        <!-- MARQUEE / TESTATA CABINATO -->
+        <header class="marquee">
+            <div class="marquee-brand">
+                <div class="rec-led" title="CCTV / PHOSPHOR MONITOR ACTIVE"></div>
+                <div>
+                    <h1>NIGHT STALKER '79</h1>
+                    <span>STEALTH HORROR SIMULATION • CASA ABBANDONATA</span>
+                </div>
+            </div>
+
+            <div class="hw-switches">
+                <button class="hw-btn active" id="btnThemeBlue" onclick="setScreenTheme('blue')">NOTTE BLU '79</button>
+                <button class="hw-btn" id="btnThemeGreen" onclick="setScreenTheme('green')">P1 VERDE</button>
+                <button class="hw-btn" id="btnThemeRed" onclick="setScreenTheme('red')">P22 ROSSO</button>
+                <button class="hw-btn active" id="btnAudio" onclick="toggleAudio()">AUDIO: ON</button>
+                <button class="hw-btn" onclick="togglePause()" title="Pausa (Tasto P)">PAUSA [P]</button>
+            </div>
+        </header>
+
+        <!-- MONITOR CRT CON VETRO CURVO -->
+        <main class="crt-bezel">
+            <div class="crt-screen">
+                <canvas id="gameCanvas"></canvas>
+                <div class="crt-scanlines"></div>
+                <div class="crt-reflection"></div>
+            </div>
+        </main>
+
+        <!-- PLANCIA CONTROLLI ARCADE -->
+        <footer class="control-panel">
+            <div class="dpad-cluster">
+                <button class="arc-btn" data-hold="left" title="Sinistra (Freccia SX / A)">◄</button>
+                <div class="dpad-col">
+                    <button class="arc-btn" data-hold="up" title="Su (Freccia SU / W)">▲</button>
+                    <button class="arc-btn" data-hold="down" title="Giù (Freccia GIÙ / S)">▼</button>
+                </div>
+                <button class="arc-btn" data-hold="right" title="Destra (Freccia DX / D)">►</button>
+            </div>
+
+            <div class="panel-instructions">
+                <strong>FRECCE / WASD:</strong> Muovi • <strong>SHIFT:</strong> Corri (fa rumore!)<br>
+                <strong>SPAZIO / E:</strong> Nasconditi / Tieni premuto per trattenere il respiro
+            </div>
+
+            <div class="action-cluster">
+                <button class="btn-run" data-hold="run" title="Tieni premuto per correre (SHIFT)">CORRI<br>[SHIFT]</button>
+                <button class="btn-hide" data-action="interact" title="Nasconditi / Trattieni il respiro (SPAZIO)">NASCONDI /<br>RESPIRO</button>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           1. MOTORE AUDIO PROCEDURALE (WEB AUDIO API) - HORROR SYNTH & FOLEY '79
+           ========================================================================== */
+        class HorrorAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.droneGain = null;
+                this.droneStarted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) {
+                        this.ctx = new AudioCtx();
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+                if (this.ctx && !this.droneStarted) {
+                    this.startAmbientDrone();
+                }
+            }
+
+            // Sottofondo inquietante a bassa frequenza (ronzio elettrico casa buia)
+            startAmbientDrone() {
+                if (!this.ctx || this.droneStarted) return;
+                this.droneStarted = true;
+
+                const osc1 = this.ctx.createOscillator();
+                const osc2 = this.ctx.createOscillator();
+                const filter = this.ctx.createBiquadFilter();
+                this.droneGain = this.ctx.createGain();
+
+                osc1.type = 'sawtooth';
+                osc1.frequency.value = 46;
+                osc2.type = 'triangle';
+                osc2.frequency.value = 47.5; // Battimento inquietante a 1.5Hz
+
+                filter.type = 'lowpass';
+                filter.frequency.value = 110;
+
+                this.droneGain.gain.value = this.enabled ? 0.045 : 0.0001;
+
+                osc1.connect(filter);
+                osc2.connect(filter);
+                filter.connect(this.droneGain);
+                this.droneGain.connect(this.ctx.destination);
+
+                osc1.start();
+                osc2.start();
+            }
+
+            updateDrone(active) {
+                if (!this.droneGain || !this.ctx) return;
+                const target = (this.enabled && active) ? 0.045 : 0.0001;
+                this.droneGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.15);
+            }
+
+            // Battito cardiaco ("lub-dub") con intensità proporzionale al pericolo
+            playHeartbeat(intensity = 0.5) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const vol = Math.min(0.32, 0.07 + intensity * 0.25);
+
+                const thump = (offset, freq) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + offset);
+                    osc.frequency.exponentialRampToValueAtTime(28, now + offset + 0.12);
+
+                    gain.gain.setValueAtTime(vol, now + offset);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.14);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + offset);
+                    osc.stop(now + offset + 0.15);
+                };
+
+                thump(0, 68);
+                thump(0.14, 54);
+            }
+
+            // Passi felpati del giocatore o corsa sul parquet
+            playPlayerStep(isRunning) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(isRunning ? 155 : 110, now);
+                osc.frequency.exponentialRampToValueAtTime(42, now + 0.05);
+
+                gain.gain.setValueAtTime(isRunning ? 0.09 : 0.035, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.06);
+            }
+
+            // Passi pesanti e rimbombanti del mostro (volume in base alla distanza)
+            playMonsterStep(proximity) {
+                if (!this.enabled || proximity <= 0.05) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const vol = Math.min(0.28, proximity * 0.28);
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(75, now);
+                osc.frequency.exponentialRampToValueAtTime(26, now + 0.16);
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 160;
+
+                gain.gain.setValueAtTime(vol, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.19);
+            }
+
+            // Scricchiolio anta armadio / nascondiglio
+            playHideCreak(entering = true) {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(entering ? 240 : 340, now);
+                osc.frequency.linearRampToValueAtTime(entering ? 360 : 210, now + 0.18);
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 520;
+
+                gain.gain.setValueAtTime(0.11, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.21);
+            }
+
+            // Tintinnio raccolta chiave
+            playKeyPickup() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const notes = [1046.5, 1318.5, 1567.98];
+                notes.forEach((f, i) => {
+                    const now = this.ctx.currentTime + i * 0.055;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, now);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.19);
+                });
+            }
+
+            // Sospetto "?" del mostro
+            playSuspicion() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(340, now + 0.22);
+                gain.gain.setValueAtTime(0.14, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.26);
+            }
+
+            // Stinger horror dissonante quando il mostro ti avvista ("!")
+            playAlertStinger() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                [185, 196, 370, 554].forEach((freq) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 0.72, now + 0.48);
+                    gain.gain.setValueAtTime(0.11, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.52);
+                });
+            }
+
+            // Fanfara fuga dalla casa
+            playEscapeFanfare() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const notes = [440, 554.37, 659.25, 880];
+                notes.forEach((freq, idx) => {
+                    const now = this.ctx.currentTime + idx * 0.12;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now);
+                    gain.gain.setValueAtTime(0.13, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                });
+            }
+
+            // Cattura / Game Over
+            playCaught() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(32, now + 0.7);
+                gain.gain.setValueAtTime(0.28, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.72);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.75);
+            }
+        }
+
+        const sfx = new HorrorAudioEngine();
+
+        /* ==========================================================================
+           2. GESTIONE TEMI CRT E SALVATAGGIO RECORD (LOCALSTORAGE)
+           ========================================================================== */
+        const STORAGE_KEY = 'night_stalker_79_record_v1';
+        let recordData = { maxNight: 1, highScore: 0 };
+
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) recordData = { ...recordData, ...JSON.parse(saved) };
+        } catch (e) {}
+
+        function saveRecord(night, score) {
+            let changed = false;
+            if (night > recordData.maxNight) {
+                recordData.maxNight = night;
+                changed = true;
+            }
+            if (score > recordData.highScore) {
+                recordData.highScore = score;
+                changed = true;
+            }
+            if (changed) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(recordData));
+                } catch (e) {}
+            }
+        }
+
+        let currentTheme = 'blue'; // 'blue' | 'green' | 'red'
+
+        function setScreenTheme(theme) {
+            currentTheme = theme;
+            document.body.className = `theme-${theme}`;
+            document.getElementById('btnThemeBlue').classList.toggle('active', theme === 'blue');
+            document.getElementById('btnThemeGreen').classList.toggle('active', theme === 'green');
+            document.getElementById('btnThemeRed').classList.toggle('active', theme === 'red');
+        }
+
+        function toggleAudio() {
+            sfx.enabled = !sfx.enabled;
+            const btn = document.getElementById('btnAudio');
+            btn.textContent = sfx.enabled ? 'AUDIO: ON' : 'AUDIO: OFF';
+            btn.classList.toggle('active', sfx.enabled);
+            sfx.updateDrone(game.state === 'playing');
+        }
+
+        function getPalette() {
+            if (currentTheme === 'green') {
+                return {
+                    bg: '#020a04',
+                    floor: '#06170b',
+                    floorGrid: '#0b2613',
+                    wall: '#22c55e',
+                    wallFill: '#0a2914',
+                    furniture: '#15803d',
+                    hideSpot: '#4ade80',
+                    text: '#33ff66',
+                    accent: '#bbf7d0',
+                    player: '#86efac',
+                    monster: '#a3e635',
+                    monsterCone: 'rgba(163, 230, 53, 0.24)',
+                    playerCone: 'rgba(51, 255, 102, 0.22)',
+                    keyColor: '#fef08a',
+                    exitLocked: '#166534',
+                    exitOpen: '#4ade80'
+                };
+            }
+            if (currentTheme === 'red') {
+                return {
+                    bg: '#0d0204',
+                    floor: '#1a0508',
+                    floorGrid: '#2b090e',
+                    wall: '#ef4444',
+                    wallFill: '#3b070c',
+                    furniture: '#991b1b',
+                    hideSpot: '#fca5a5',
+                    text: '#fecaca',
+                    accent: '#ff4d4d',
+                    player: '#fde047',
+                    monster: '#ff1e1e',
+                    monsterCone: 'rgba(255, 30, 30, 0.28)',
+                    playerCone: 'rgba(254, 202, 202, 0.20)',
+                    keyColor: '#fef08a',
+                    exitLocked: '#7f1d1d',
+                    exitOpen: '#4ade80'
+                };
+            }
+            // Tema "NOTTE BLU '79" (Blu notte inquietante + Ambra/Rosso)
+            return {
+                bg: '#050811',
+                floor: '#0b1224',
+                floorGrid: '#111b36',
+                wall: '#38bdf8',
+                wallFill: '#0f2342',
+                furniture: '#1e3a6e',
+                hideSpot: '#f59e0b',
+                text: '#e2e8f0',
+                accent: '#f59e0b',
+                player: '#38bdf8',
+                monster: '#ef4444',
+                monsterCone: 'rgba(239, 68, 68, 0.26)',
+                playerCone: 'rgba(245, 158, 11, 0.22)',
+                keyColor: '#fde047',
+                exitLocked: '#334155',
+                exitOpen: '#22c55e'
+            };
+        }
+
+        /* ==========================================================================
+           3. PIANTA ARCHITETTONICA DELLA CASA (800x600 LOGICO)
+           7 Stanze: Ingresso, Soggiorno, Cucina, Corridoio, Camera, Bagno, Ripostiglio
+           ========================================================================== */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const LOGICAL_W = 800;
+        const LOGICAL_H = 600;
+        const HUD_H = 44;
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.max(320, Math.floor(rect.width * dpr));
+            canvas.height = Math.max(240, Math.floor(rect.height * dpr));
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Rettangoli dei muri solidi della casa (con varchi/porte larghi 56px per fluidità)
+        const HOUSE_WALLS = [
+            // Perimetro esterno casa (lasciando la porta d'uscita in basso a sinistra x: 85..145)
+            { x: 24,  y: 52,  w: 752, h: 12 }, // Muro Nord
+            { x: 24,  y: 52,  w: 12,  h: 528 }, // Muro Ovest
+            { x: 764, y: 52,  w: 12,  h: 528 }, // Muro Est
+            { x: 24,  y: 568, w: 61,  h: 12 }, // Muro Sud sx (prima dell'uscita)
+            { x: 145, y: 568, w: 631, h: 12 }, // Muro Sud dx (dopo l'uscita)
+
+            // Parete verticale Sinistra (separa Soggiorno/Ingresso dal Corridoio centrale, x=260)
+            { x: 260, y: 64,  w: 12, h: 96 },
+            // Porta Soggiorno <-> Corridoio (y: 160..216)
+            { x: 260, y: 216, w: 12, h: 114 },
+            // Parete orizzontale Soggiorno / Ingresso (y=320)
+            { x: 36,  y: 320, w: 104, h: 12 },
+            // Porta Soggiorno <-> Ingresso (x: 140..196)
+            { x: 196, y: 320, w: 76,  h: 12 },
+            // Continuazione parete verticale Ingresso <-> Corridoio
+            { x: 260, y: 332, w: 12, h: 88 },
+            // Porta Ingresso <-> Corridoio (y: 420..476)
+            { x: 260, y: 476, w: 12, h: 92 },
+
+            // Parete verticale Destra (separa Corridoio centrale da Cucina/Camera/Bagno, x=510)
+            { x: 510, y: 64,  w: 12, h: 66 },
+            // Porta Corridoio <-> Cucina (y: 130..186)
+            { x: 510, y: 186, w: 12, h: 114 },
+            // Porta Corridoio <-> Camera da Letto (y: 300..356)
+            { x: 510, y: 356, w: 12, h: 104 },
+            // Porta Corridoio <-> Bagno (y: 460..516)
+            { x: 510, y: 516, w: 12, h: 52 },
+
+            // Pareti orizzontali lato Destro (Cucina / Camera / Bagno)
+            { x: 522, y: 240, w: 242, h: 12 }, // Separa Cucina da Camera da Letto
+            { x: 522, y: 430, w: 242, h: 12 }, // Separa Camera da Letto da Bagno
+
+            // Ripostiglio / Cantina in fondo al corridoio centrale (y=430)
+            { x: 272, y: 430, w: 88,  h: 12 },
+            // Porta Corridoio <-> Ripostiglio (x: 360..416)
+            { x: 416, y: 430, w: 94,  h: 12 }
+        ];
+
+        // Etichette delle stanze
+        const ROOM_LABELS = [
+            { name: 'SOGGIORNO', x: 148, y: 190 },
+            { name: 'INGRESSO', x: 148, y: 450 },
+            { name: 'CORRIDOIO', x: 390, y: 245 },
+            { name: 'RIPOSTIGLIO', x: 390, y: 505 },
+            { name: 'CUCINA', x: 640, y: 150 },
+            { name: 'CAMERA', x: 640, y: 335 },
+            { name: 'BAGNO', x: 640, y: 505 }
+        ];
+
+        // Arredi visivi (non bloccano troppo il passaggio, danno atmosfera retro)
+        const FURNITURE = [
+            { type: 'sofa', x: 52, y: 95, w: 90, h: 36 },
+            { type: 'table', x: 110, y: 185, w: 68, h: 42 },
+            { type: 'rug', x: 95, y: 395, w: 110, h: 75 },
+            { type: 'counter', x: 580, y: 74, w: 170, h: 32 },
+            { type: 'table', x: 605, y: 150, w: 72, h: 44 },
+            { type: 'bed', x: 645, y: 262, w: 105, h: 64 },
+            { type: 'tub', x: 665, y: 454, w: 86, h: 42 },
+            { type: 'shelves', x: 284, y: 530, w: 95, h: 26 }
+        ];
+
+        // Nascondigli interattivi distribuiti nelle stanze
+        const HIDING_SPOTS = [
+            { id: 'wardrobe_living', label: 'ARMADIO', x: 42, y: 245, w: 30, h: 62, peekAngle: 0 },
+            { id: 'closet_hall', label: 'GUARDAROBA', x: 215, y: 342, w: 36, h: 52, peekAngle: Math.PI },
+            { id: 'pantry_kitchen', label: 'DISPENSA', x: 724, y: 165, w: 30, h: 58, peekAngle: Math.PI },
+            { id: 'under_bed', label: 'SOTTO IL LETTO', x: 648, y: 266, w: 96, h: 56, peekAngle: Math.PI },
+            { id: 'curtain_bath', label: 'TENDA DOCCIA', x: 534, y: 515, w: 46, h: 42, peekAngle: -Math.PI / 2 },
+            { id: 'crates_storage', label: 'CASSE BUIO', x: 448, y: 512, w: 50, h: 46, peekAngle: -Math.PI / 2 }
+        ];
+
+        // Punti chiave per la pattuglia del mostro e lo spawn delle chiavi
+        const WAYPOINTS = [
+            { x: 145, y: 140 }, // Soggiorno Nord
+            { x: 155, y: 265 }, // Soggiorno Sud
+            { x: 155, y: 410 }, // Ingresso
+            { x: 390, y: 130 }, // Corridoio Nord
+            { x: 390, y: 310 }, // Corridoio Centro
+            { x: 390, y: 495 }, // Ripostiglio
+            { x: 620, y: 155 }, // Cucina
+            { x: 585, y: 345 }, // Camera da Letto
+            { x: 615, y: 505 }  // Bagno
+        ];
+
+        // Porta d'uscita in basso a sinistra (Ingresso)
+        const EXIT_DOOR = { x: 85, y: 564, w: 60, h: 16 };
+
+        /* ==========================================================================
+           4. RAYCASTING 2D PER LINEA DI VISTA E CONI DI LUCE REALISTICI
+           ========================================================================== */
+        // Estrae tutti i segmenti dei muri per il calcolo intersezione raggi
+        function buildWallSegments() {
+            const segs = [];
+            HOUSE_WALLS.forEach(w => {
+                segs.push({ x1: w.x, y1: w.y, x2: w.x + w.w, y2: w.y });
+                segs.push({ x1: w.x + w.w, y1: w.y, x2: w.x + w.w, y2: w.y + w.h });
+                segs.push({ x1: w.x + w.w, y1: w.y + w.h, x2: w.x, y2: w.y + w.h });
+                segs.push({ x1: w.x, y1: w.y + w.h, x2: w.x, y2: w.y });
+            });
+            return segs;
+        }
+        const WALL_SEGMENTS = buildWallSegments();
+
+        // Calcola l'intersezione tra un raggio (ox, oy, dx, dy) e un segmento (x1, y1, x2, y2)
+        function intersectRaySegment(ox, oy, dx, dy, seg) {
+            const r_px = ox, r_py = oy;
+            const r_dx = dx, r_dy = dy;
+            const s_px = seg.x1, s_py = seg.y1;
+            const s_dx = seg.x2 - seg.x1, s_dy = seg.y2 - seg.y1;
+
+            const denom = r_dx * s_dy - r_dy * s_dx;
+            if (Math.abs(denom) < 0.00001) return null;
+
+            const t2 = (r_dx * (s_py - r_py) + r_dy * (r_px - s_px)) / denom;
+            if (t2 < 0 || t2 > 1) return null;
+
+            const t1 = (s_px + s_dx * t2 - r_px) / (Math.abs(r_dx) > Math.abs(r_dy) ? r_dx : 1);
+            // Calcolo esatto di t1 tramite prodotto vettoriale
+            const u = ((s_px - r_px) * s_dy - (s_py - r_py) * s_dx) / denom;
+            if (u < 0) return null;
+
+            return {
+                x: r_px + r_dx * u,
+                y: r_py + r_dy * u,
+                dist: u
+            };
+        }
+
+        // Lancia un singolo raggio e trova il muro più vicino entro maxDist
+        function castSingleRay(ox, oy, angle, maxDist) {
+            const dx = Math.cos(angle);
+            const dy = Math.sin(angle);
+            let closest = { x: ox + dx * maxDist, y: oy + dy * maxDist, dist: maxDist };
+
+            for (let i = 0; i < WALL_SEGMENTS.length; i++) {
+                const hit = intersectRaySegment(ox, oy, dx, dy, WALL_SEGMENTS[i]);
+                if (hit && hit.dist < closest.dist) {
+                    closest = hit;
+                }
+            }
+            return closest;
+        }
+
+        // Verifica se c'è linea di vista diretta (senza muri in mezzo) tra due punti
+        function hasLineOfSight(x1, y1, x2, y2) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 1) return true;
+            const angle = Math.atan2(dy, dx);
+            const hit = castSingleRay(x1, y1, angle, dist);
+            return hit.dist >= dist - 4;
+        }
+
+        // Disegna un poligono di luce tramite raycasting
+        function drawLightCone(ox, oy, centerAngle, fovRad, maxDist, colorInner, colorOuter, rayCount = 48) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(ox, oy);
+
+            const startAngle = centerAngle - fovRad / 2;
+            const step = fovRad / rayCount;
+            for (let i = 0; i <= rayCount; i++) {
+                const a = startAngle + i * step;
+                const pt = castSingleRay(ox, oy, a, maxDist);
+                ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.closePath();
+
+            const grad = ctx.createRadialGradient(ox, oy, 6, ox, oy, maxDist);
+            grad.addColorStop(0, colorInner);
+            grad.addColorStop(1, colorOuter);
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        /* ==========================================================================
+           5. STATO E LOGICA DI GIOCO "NIGHT STALKER '79"
+           ========================================================================== */
+        const game = {
+            state: 'title', // 'title' | 'playing' | 'paused' | 'escaped' | 'caught'
+            night: 1,
+            score: 0,
+            clockMinutes: 0, // 0 = 00:00 AM -> 360 = 06:00 AM
+            keysCollected: 0,
+            keysRequired: 3,
+            keys: [],
+            noiseRipples: [],
+            stepTimer: 0,
+            heartbeatTimer: 0,
+            transitionTimer: 0,
+
+            player: {
+                x: 115,
+                y: 525,
+                radius: 11,
+                angle: -Math.PI / 2,
+                speedWalk: 118,
+                speedRun: 195,
+                isRunning: false,
+                hidingSpot: null,
+                panic: 0,           // 0..100 (se arriva a 100 mentre sei nascosto, il mostro ti sente!)
+                breathStamina: 100, // 0..100 (energia per trattenere il respiro)
+                holdingBreath: false,
+                nearHideSpot: null
+            },
+
+            monster: {
+                x: 620,
+                y: 155,
+                radius: 14,
+                angle: Math.PI,
+                state: 'patrol', // 'patrol' | 'investigate' | 'hunt'
+                waypointIdx: 0,
+                targetX: 620,
+                targetY: 155,
+                stateTimer: 0,
+                stepTimer: 0,
+                pathTimer: 0,
+                path: [],
+                pathIndex: 0,
+                alertIcon: '' // '' | '?' | '!'
+            }
+        };
+
+        // Gestione input continuo e impulsivo
+        const heldInputs = { up: false, down: false, left: false, right: false, run: false, interact: false };
+
+        function startNight(nightNum, resetScore = false) {
+            sfx.init();
+            if (resetScore) game.score = 0;
+            game.night = nightNum;
+            game.clockMinutes = 0;
+            game.keysCollected = 0;
+            game.keysRequired = Math.min(5, 2 + nightNum); // Notte 1 = 3 chiavi, Notte 2 = 4 chiavi, Notte 3+ = 5 chiavi
+            game.noiseRipples = [];
+
+            // Posizione iniziale giocatore nell'Ingresso
+            const p = game.player;
+            p.x = 115;
+            p.y = 525;
+            p.angle = -Math.PI / 2;
+            p.hidingSpot = null;
+            p.panic = 0;
+            p.breathStamina = 100;
+            p.holdingBreath = false;
+
+            // Posizione iniziale mostro lontana dall'Ingresso (Cucina o Bagno)
+            const m = game.monster;
+            m.x = 620;
+            m.y = 155;
+            m.angle = Math.PI;
+            m.state = 'patrol';
+            m.waypointIdx = 3;
+            m.targetX = WAYPOINTS[3].x;
+            m.targetY = WAYPOINTS[3].y;
+            m.stateTimer = 0;
+            m.pathTimer = 0;
+            m.path = [];
+            m.pathIndex = 0;
+            m.alertIcon = '';
+
+            // Genera chiavi luminose in stanze casuali distanti dall'ingresso
+            const candidateSpots = [
+                { x: 105, y: 125, name: 'Soggiorno' },
+                { x: 215, y: 120, name: 'Soggiorno' },
+                { x: 635, y: 120, name: 'Cucina' },
+                { x: 710, y: 205, name: 'Cucina' },
+                { x: 565, y: 385, name: 'Camera' },
+                { x: 725, y: 385, name: 'Camera' },
+                { x: 715, y: 525, name: 'Bagno' },
+                { x: 325, y: 495, name: 'Ripostiglio' },
+                { x: 455, y: 115, name: 'Corridoio' }
+            ];
+
+            // Mescola i candidati
+            for (let i = candidateSpots.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [candidateSpots[i], candidateSpots[j]] = [candidateSpots[j], candidateSpots[i]];
+            }
+
+            game.keys = candidateSpots.slice(0, game.keysRequired).map((pt, idx) => ({
+                id: idx,
+                x: pt.x,
+                y: pt.y,
+                collected: false,
+                pulse: Math.random() * Math.PI * 2
+            }));
+
+            game.state = 'playing';
+            sfx.updateDrone(true);
+        }
+
+        function togglePause() {
+            if (game.state === 'playing') {
+                game.state = 'paused';
+                sfx.updateDrone(false);
+            } else if (game.state === 'paused') {
+                game.state = 'playing';
+                sfx.updateDrone(true);
+            }
+        }
+
+        // Gestione azione SPAZIO / E / Pulsante NASCONDI
+        function triggerInteractAction() {
+            if (game.state === 'title' || game.state === 'caught') {
+                startNight(1, true);
+                return;
+            }
+            if (game.state === 'escaped') {
+                startNight(game.night + 1, false);
+                return;
+            }
+            if (game.state !== 'playing') return;
+
+            const p = game.player;
+            if (p.hidingSpot) {
+                // Esci dal nascondiglio
+                sfx.playHideCreak(false);
+                p.hidingSpot = null;
+                p.holdingBreath = false;
+            } else if (p.nearHideSpot) {
+                // Entra nel nascondiglio vicino
+                sfx.playHideCreak(true);
+                p.hidingSpot = p.nearHideSpot;
+                p.x = p.nearHideSpot.x + p.nearHideSpot.w / 2;
+                p.y = p.nearHideSpot.y + p.nearHideSpot.h / 2;
+                p.angle = p.nearHideSpot.peekAngle;
+                p.isRunning = false;
+
+                // Se il mostro non ti vede entrare direttamente, perde le tue tracce
+                if (game.monster.state === 'hunt' && !hasLineOfSight(game.monster.x, game.monster.y, p.x, p.y)) {
+                    game.monster.state = 'investigate';
+                    game.monster.targetX = p.x;
+                    game.monster.targetY = p.y;
+                    game.monster.stateTimer = 4.5;
+                    game.monster.alertIcon = '?';
+                }
+            }
+        }
+
+        // Collisione cerchio contro rettangoli dei muri
+        function moveEntityWithWalls(entity, dx, dy) {
+            const r = entity.radius;
+            // Asse X
+            entity.x += dx;
+            for (const w of HOUSE_WALLS) {
+                if (circleRectOverlap(entity.x, entity.y, r, w)) {
+                    if (dx > 0) entity.x = w.x - r;
+                    else if (dx < 0) entity.x = w.x + w.w + r;
+                }
+            }
+            // Asse Y
+            entity.y += dy;
+            for (const w of HOUSE_WALLS) {
+                if (circleRectOverlap(entity.x, entity.y, r, w)) {
+                    if (dy > 0) entity.y = w.y - r;
+                    else if (dy < 0) entity.y = w.y + w.h + r;
+                }
+            }
+        }
+
+        function circleRectOverlap(cx, cy, cr, rect) {
+            const closestX = Math.max(rect.x, Math.min(cx, rect.x + rect.w));
+            const closestY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
+            const distX = cx - closestX;
+            const distY = cy - closestY;
+            return (distX * distX + distY * distY) < (cr * cr);
+        }
+
+        function buildMonsterNavigation() {
+            const nodes = [];
+            const grid = [];
+            const step = 16;
+            for (let y = 80; y <= 560; y += step) {
+                const row = [];
+                for (let x = 40; x <= 760; x += step) {
+                    if (HOUSE_WALLS.some(w => circleRectOverlap(x, y, game.monster.radius, w))) {
+                        row.push(-1);
+                        continue;
+                    }
+                    row.push(nodes.length);
+                    nodes.push({ x, y, neighbors: [] });
+                }
+                grid.push(row);
+            }
+
+            function edgeIsClear(x1, y1, x2, y2) {
+                const distance = Math.hypot(x2 - x1, y2 - y1);
+                const samples = Math.ceil(distance / 4);
+                for (let i = 1; i < samples; i++) {
+                    const t = i / samples;
+                    if (HOUSE_WALLS.some(w => circleRectOverlap(
+                        x1 + (x2 - x1) * t,
+                        y1 + (y2 - y1) * t,
+                        game.monster.radius,
+                        w
+                    ))) return false;
+                }
+                return true;
+            }
+
+            for (let row = 0; row < grid.length; row++) {
+                for (let col = 0; col < grid[row].length; col++) {
+                    const index = grid[row][col];
+                    if (index < 0) continue;
+                    for (const [nextRow, nextCol] of [[row + 1, col], [row, col + 1]]) {
+                        if (nextRow >= grid.length || nextCol >= grid[row].length) continue;
+                        const nextIndex = grid[nextRow][nextCol];
+                        if (nextIndex < 0) continue;
+                        const from = nodes[index], to = nodes[nextIndex];
+                        if (!edgeIsClear(from.x, from.y, to.x, to.y)) continue;
+                        from.neighbors.push(nextIndex);
+                        to.neighbors.push(index);
+                    }
+                }
+            }
+            return nodes;
+        }
+
+        const MONSTER_NAVIGATION = buildMonsterNavigation();
+
+        function findMonsterPath(startX, startY, targetX, targetY) {
+            let startIndex = -1;
+            let startDistance = Infinity;
+            for (let i = 0; i < MONSTER_NAVIGATION.length; i++) {
+                const node = MONSTER_NAVIGATION[i];
+                const distance = (node.x - startX) ** 2 + (node.y - startY) ** 2;
+                if (distance < startDistance) {
+                    startDistance = distance;
+                    startIndex = i;
+                }
+            }
+
+            const previous = new Int32Array(MONSTER_NAVIGATION.length);
+            previous.fill(-2);
+            previous[startIndex] = -1;
+            const queue = [startIndex];
+            let goalIndex = startIndex;
+            let goalDistance = (MONSTER_NAVIGATION[startIndex].x - targetX) ** 2
+                + (MONSTER_NAVIGATION[startIndex].y - targetY) ** 2;
+
+            for (let cursor = 0; cursor < queue.length; cursor++) {
+                const index = queue[cursor];
+                const node = MONSTER_NAVIGATION[index];
+                const distance = (node.x - targetX) ** 2 + (node.y - targetY) ** 2;
+                if (distance < goalDistance) {
+                    goalDistance = distance;
+                    goalIndex = index;
+                }
+                for (const neighbor of node.neighbors) {
+                    if (previous[neighbor] !== -2) continue;
+                    previous[neighbor] = index;
+                    queue.push(neighbor);
+                }
+            }
+
+            const path = [];
+            for (let index = goalIndex; index !== -1; index = previous[index]) {
+                path.push(MONSTER_NAVIGATION[index]);
+            }
+            path.reverse();
+            return path;
+        }
+
+        // Genera un'onda sonora visibile e udibile dal mostro
+        function emitNoise(x, y, radius) {
+            game.noiseRipples.push({ x, y, r: 8, maxR: radius, alpha: 0.85 });
+
+            const m = game.monster;
+            const dist = Math.hypot(m.x - x, m.y - y);
+            if (dist <= radius && m.state !== 'hunt') {
+                if (m.state === 'patrol') sfx.playSuspicion();
+                m.state = 'investigate';
+                m.targetX = x;
+                m.targetY = y;
+                m.stateTimer = 5.0;
+                m.alertIcon = '?';
+            }
+        }
+
+        /* ==========================================================================
+           6. CONTROLLI TASTIERA E PLANCIA TOUCH/MOUSE
+           ========================================================================== */
+        window.addEventListener('keydown', (e) => {
+            const k = e.key;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(k)) {
+                e.preventDefault();
+            }
+
+            if (k === 'ArrowUp' || k === 'w' || k === 'W') heldInputs.up = true;
+            if (k === 'ArrowDown' || k === 's' || k === 'S') heldInputs.down = true;
+            if (k === 'ArrowLeft' || k === 'a' || k === 'A') heldInputs.left = true;
+            if (k === 'ArrowRight' || k === 'd' || k === 'D') heldInputs.right = true;
+            if (k === 'Shift') heldInputs.run = true;
+
+            if (k === ' ' || k === 'e' || k === 'E' || k === 'Enter') {
+                if (!heldInputs.interact) {
+                    heldInputs.interact = true;
+                    // Se sei già nascosto, tenere premuto trattiene il respiro; un tocco rapido quando non sei nascosto ti fa entrare
+                    if (!game.player.hidingSpot) {
+                        triggerInteractAction();
+                    } else {
+                        game.player.holdingBreath = true;
+                        game.player._breathHoldStart = performance.now();
+                    }
+                }
+            }
+
+            if (k === 'p' || k === 'P') togglePause();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            const k = e.key;
+            if (k === 'ArrowUp' || k === 'w' || k === 'W') heldInputs.up = false;
+            if (k === 'ArrowDown' || k === 's' || k === 'S') heldInputs.down = false;
+            if (k === 'ArrowLeft' || k === 'a' || k === 'A') heldInputs.left = false;
+            if (k === 'ArrowRight' || k === 'd' || k === 'D') heldInputs.right = false;
+            if (k === 'Shift') heldInputs.run = false;
+
+            if (k === ' ' || k === 'e' || k === 'E' || k === 'Enter') {
+                if (heldInputs.interact && game.player.hidingSpot) {
+                    const heldMs = performance.now() - (game.player._breathHoldStart || 0);
+                    // Se è stato un tocco breve (< 260ms) esce dal nascondiglio, altrimenti smette di trattenere il respiro
+                    if (heldMs < 260) {
+                        triggerInteractAction();
+                    }
+                }
+                heldInputs.interact = false;
+                game.player.holdingBreath = false;
+            }
+        });
+
+        // Pulsanti direzionali e CORRI a pressione continua
+        document.querySelectorAll('[data-hold]').forEach(btn => {
+            const dir = btn.getAttribute('data-hold');
+            const down = (e) => {
+                e.preventDefault();
+                sfx.init();
+                heldInputs[dir] = true;
+                btn.classList.add('pressed');
+            };
+            const up = (e) => {
+                e.preventDefault();
+                heldInputs[dir] = false;
+                btn.classList.remove('pressed');
+            };
+            btn.addEventListener('mousedown', down);
+            btn.addEventListener('mouseup', up);
+            btn.addEventListener('mouseleave', up);
+            btn.addEventListener('touchstart', down, { passive: false });
+            btn.addEventListener('touchend', up, { passive: false });
+            btn.addEventListener('touchcancel', up, { passive: false });
+        });
+
+        // Pulsante NASCONDI / RESPIRO
+        const btnHide = document.querySelector('[data-action="interact"]');
+        btnHide.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            sfx.init();
+            btnHide.classList.add('pressed');
+            heldInputs.interact = true;
+            if (!game.player.hidingSpot) {
+                triggerInteractAction();
+            } else {
+                game.player.holdingBreath = true;
+                game.player._breathHoldStart = performance.now();
+            }
+        });
+        const releaseHideBtn = (e) => {
+            e.preventDefault();
+            btnHide.classList.remove('pressed');
+            if (heldInputs.interact && game.player.hidingSpot) {
+                const heldMs = performance.now() - (game.player._breathHoldStart || 0);
+                if (heldMs < 260) triggerInteractAction();
+            }
+            heldInputs.interact = false;
+            game.player.holdingBreath = false;
+        };
+        btnHide.addEventListener('mouseup', releaseHideBtn);
+        btnHide.addEventListener('mouseleave', releaseHideBtn);
+        btnHide.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            sfx.init();
+            btnHide.classList.add('pressed');
+            heldInputs.interact = true;
+            if (!game.player.hidingSpot) {
+                triggerInteractAction();
+            } else {
+                game.player.holdingBreath = true;
+                game.player._breathHoldStart = performance.now();
+            }
+        }, { passive: false });
+        btnHide.addEventListener('touchend', releaseHideBtn, { passive: false });
+
+        /* ==========================================================================
+           7. AGGIORNAMENTO GIOCO E IA DEL MOSTRO (UPDATE)
+           ========================================================================== */
+        function updateGame(dt) {
+            // Onde sonore di rumore
+            for (let i = game.noiseRipples.length - 1; i >= 0; i--) {
+                const nr = game.noiseRipples[i];
+                nr.r += 160 * dt;
+                nr.alpha -= 1.3 * dt;
+                if (nr.alpha <= 0 || nr.r >= nr.maxR) game.noiseRipples.splice(i, 1);
+            }
+
+            if (game.state !== 'playing') return;
+
+            const p = game.player;
+            const m = game.monster;
+
+            // Avanzamento orologio notturno (00:00 -> 06:00 AM)
+            game.clockMinutes += dt * 2.4;
+            if (game.clockMinutes >= 360) {
+                // Sopravvissuto fino alle 06:00 AM: tutte le chiavi si sbloccano automaticamente!
+                game.keys.forEach(k => k.collected = true);
+                game.keysCollected = game.keysRequired;
+            }
+
+            // 1. AGGIORNAMENTO GIOCATORE
+            if (p.hidingSpot) {
+                // Sei dentro un nascondiglio: puoi ruotare leggermente lo sguardo dalla fessura
+                if (heldInputs.left) p.angle -= 1.6 * dt;
+                if (heldInputs.right) p.angle += 1.6 * dt;
+
+                const distMonster = Math.hypot(m.x - p.x, m.y - p.y);
+                const monsterClose = distMonster < 165;
+
+                if (p.holdingBreath && p.breathStamina > 0) {
+                    p.breathStamina = Math.max(0, p.breathStamina - 34 * dt);
+                    p.panic = Math.max(0, p.panic - 38 * dt);
+                } else {
+                    p.holdingBreath = false;
+                    p.breathStamina = Math.min(100, p.breathStamina + 20 * dt);
+                    if (monsterClose) {
+                        // Il panico sale quando il mostro passa accanto al tuo armadio!
+                        p.panic += (32 + game.night * 6) * dt;
+                    } else {
+                        p.panic = Math.max(0, p.panic - 18 * dt);
+                    }
+                }
+
+                // Se il panico arriva al 100%, emetti un rantolo e il mostro scopre il nascondiglio!
+                if (p.panic >= 100) {
+                    p.panic = 100;
+                    sfx.playHideCreak(false);
+                    p.hidingSpot = null;
+                    p.holdingBreath = false;
+                    sfx.playAlertStinger();
+                    m.state = 'hunt';
+                    m.targetX = p.x;
+                    m.targetY = p.y;
+                    m.alertIcon = '!';
+                }
+            } else {
+                // Movimento libero nella casa
+                let mx = 0, my = 0;
+                if (heldInputs.left) mx -= 1;
+                if (heldInputs.right) mx += 1;
+                if (heldInputs.up) my -= 1;
+                if (heldInputs.down) my += 1;
+
+                p.isRunning = heldInputs.run && (mx !== 0 || my !== 0);
+                p.panic = Math.max(0, p.panic - 22 * dt);
+                p.breathStamina = Math.min(100, p.breathStamina + 25 * dt);
+
+                if (mx !== 0 || my !== 0) {
+                    const len = Math.hypot(mx, my);
+                    mx /= len;
+                    my /= len;
+
+                    const spd = p.isRunning ? p.speedRun : p.speedWalk;
+                    moveEntityWithWalls(p, mx * spd * dt, my * spd * dt);
+
+                    // Rotazione fluida verso direzione di movimento
+                    const targetAngle = Math.atan2(my, mx);
+                    let diff = targetAngle - p.angle;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    p.angle += diff * Math.min(1, 14 * dt);
+
+                    // Passi audio + rumore corsa
+                    game.stepTimer -= dt;
+                    if (game.stepTimer <= 0) {
+                        game.stepTimer = p.isRunning ? 0.23 : 0.42;
+                        sfx.playPlayerStep(p.isRunning);
+                        if (p.isRunning) {
+                            emitNoise(p.x, p.y, 195);
+                        }
+                    }
+                }
+
+                // Controlla se il giocatore è vicino a un nascondiglio
+                p.nearHideSpot = null;
+                for (const spot of HIDING_SPOTS) {
+                    const cx = spot.x + spot.w / 2;
+                    const cy = spot.y + spot.h / 2;
+                    if (Math.hypot(p.x - cx, p.y - cy) < 42) {
+                        p.nearHideSpot = spot;
+                        break;
+                    }
+                }
+
+                // Raccolta chiavi luminose
+                for (const k of game.keys) {
+                    k.pulse += dt * 4;
+                    if (!k.collected && Math.hypot(p.x - k.x, p.y - k.y) < 26) {
+                        k.collected = true;
+                        game.keysCollected++;
+                        game.score += 250 * game.night;
+                        sfx.playKeyPickup();
+                    }
+                }
+
+                // Controllo porta d'uscita sbloccata
+                if (game.keysCollected >= game.keysRequired) {
+                    const exitCx = EXIT_DOOR.x + EXIT_DOOR.w / 2;
+                    const exitCy = EXIT_DOOR.y;
+                    if (Math.hypot(p.x - exitCx, p.y - exitCy) < 34) {
+                        game.score += 500 * game.night;
+                        saveRecord(game.night + 1, game.score);
+                        game.state = 'escaped';
+                        sfx.updateDrone(false);
+                        sfx.playEscapeFanfare();
+                        return;
+                    }
+                }
+            }
+
+            // 2. BATTITO CARDIACO DINAMICO IN BASE ALLA VICINANZA DEL MOSTRO
+            const distToMonster = Math.hypot(m.x - p.x, m.y - p.y);
+            if (distToMonster < 270) {
+                const danger = 1 - (distToMonster / 270);
+                game.heartbeatTimer -= dt;
+                if (game.heartbeatTimer <= 0) {
+                    game.heartbeatTimer = Math.max(0.28, 0.92 - danger * 0.62);
+                    sfx.playHeartbeat(danger);
+                }
+            }
+
+            // 3. INTELLIGENZA ARTIFICIALE DEL MOSTRO
+            const nightBoost = 1 + (game.night - 1) * 0.14;
+            const patrolSpeed = 88 * nightBoost;
+            const chaseSpeed = 148 * nightBoost;
+            const viewRange = 215 + game.night * 12;
+            const viewFov = Math.PI * 0.46; // ~82 gradi
+
+            // Controllo visivo del giocatore (solo se NON è nascosto!)
+            let canSeePlayer = false;
+            if (!p.hidingSpot && distToMonster <= viewRange) {
+                const angleToPlayer = Math.atan2(p.y - m.y, p.x - m.x);
+                let angleDiff = angleToPlayer - m.angle;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+                if (Math.abs(angleDiff) <= viewFov / 2 && hasLineOfSight(m.x, m.y, p.x, p.y)) {
+                    canSeePlayer = true;
+                }
+            }
+
+            if (canSeePlayer) {
+                if (m.state !== 'hunt') {
+                    sfx.playAlertStinger();
+                }
+                m.state = 'hunt';
+                m.targetX = p.x;
+                m.targetY = p.y;
+                m.stateTimer = 4.0;
+                m.alertIcon = '!';
+            } else if (m.state === 'hunt') {
+                // Ha perso la linea di vista: corre all'ultima posizione nota
+                m.stateTimer -= dt;
+                if (Math.hypot(m.targetX - m.x, m.targetY - m.y) < 18 || m.stateTimer <= 0) {
+                    m.state = 'investigate';
+                    m.stateTimer = 4.0;
+                    m.alertIcon = '?';
+                }
+            } else if (m.state === 'investigate') {
+                m.stateTimer -= dt;
+                if (Math.hypot(m.targetX - m.x, m.targetY - m.y) < 18 || m.stateTimer <= 0) {
+                    m.state = 'patrol';
+                    m.alertIcon = '';
+                    // Scegli il waypoint più vicino per riprendere il giro
+                    let bestIdx = 0, bestD = Infinity;
+                    WAYPOINTS.forEach((wp, idx) => {
+                        const d = Math.hypot(wp.x - m.x, wp.y - m.y);
+                        if (d < bestD) { bestD = d; bestIdx = idx; }
+                    });
+                    m.waypointIdx = bestIdx;
+                    m.targetX = WAYPOINTS[bestIdx].x;
+                    m.targetY = WAYPOINTS[bestIdx].y;
+                }
+            } else {
+                // Stato PATTUGLIA tra le stanze
+                m.alertIcon = '';
+                const wp = WAYPOINTS[m.waypointIdx];
+                m.targetX = wp.x;
+                m.targetY = wp.y;
+                if (Math.hypot(wp.x - m.x, wp.y - m.y) < 20) {
+                    // Passa alla stanza successiva (con piccola variazione casuale)
+                    if (Math.random() < 0.25) {
+                        m.waypointIdx = Math.floor(Math.random() * WAYPOINTS.length);
+                    } else {
+                        m.waypointIdx = (m.waypointIdx + 1) % WAYPOINTS.length;
+                    }
+                }
+            }
+
+            // Ricalcola periodicamente il percorso così il mostro segue anche un bersaglio in movimento.
+            m.pathTimer -= dt;
+            if (m.pathTimer <= 0) {
+                m.path = findMonsterPath(m.x, m.y, m.targetX, m.targetY);
+                m.pathIndex = 0;
+                m.pathTimer = 0.25;
+            }
+
+            while (m.pathIndex < m.path.length
+                && Math.hypot(m.path[m.pathIndex].x - m.x, m.path[m.pathIndex].y - m.y) < 8) {
+                m.pathIndex++;
+            }
+
+            const nextNode = m.path[m.pathIndex];
+            if (nextNode) {
+                const toNodeX = nextNode.x - m.x;
+                const toNodeY = nextNode.y - m.y;
+                const distNode = Math.hypot(toNodeX, toNodeY);
+                const desiredAngle = Math.atan2(toNodeY, toNodeX);
+                let diff = desiredAngle - m.angle;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                m.angle += diff * Math.min(1, 8 * dt);
+
+                const curSpeed = (m.state === 'hunt') ? chaseSpeed : (m.state === 'investigate' ? patrolSpeed * 1.25 : patrolSpeed);
+                const moveDistance = Math.min(distNode, curSpeed * dt);
+                moveEntityWithWalls(m, toNodeX / distNode * moveDistance, toNodeY / distNode * moveDistance);
+
+                // Passi pesanti del mostro
+                m.stepTimer -= dt;
+                if (m.stepTimer <= 0) {
+                    m.stepTimer = (m.state === 'hunt') ? 0.30 : 0.52;
+                    const prox = Math.max(0, 1 - Math.hypot(m.x - p.x, m.y - p.y) / 420);
+                    sfx.playMonsterStep(prox);
+                }
+            }
+
+            // Cattura del giocatore se allo scoperto e a contatto con il mostro
+            if (!p.hidingSpot && distToMonster < (p.radius + m.radius - 2)) {
+                saveRecord(game.night, game.score);
+                game.state = 'caught';
+                sfx.updateDrone(false);
+                sfx.playCaught();
+            }
+        }
+
+        /* ==========================================================================
+           8. RENDERING RETRO CRT CON ILLUMINAZIONE DINAMICA E FOG OF WAR
+           ========================================================================== */
+        function drawText(text, x, y, size = 18, align = 'center', color = '#fff') {
+            ctx.save();
+            ctx.font = `bold ${size}px "Courier New", Courier, monospace`;
+            ctx.textAlign = align;
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 5;
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+
+        function renderScene() {
+            const pal = getPalette();
+            ctx.save();
+
+            const scaleX = canvas.width / LOGICAL_W;
+            const scaleY = canvas.height / LOGICAL_H;
+            ctx.scale(scaleX, scaleY);
+
+            // 1. Pavimento casa e griglia stile planimetria retro
+            ctx.fillStyle = pal.floor;
+            ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+
+            ctx.strokeStyle = pal.floorGrid;
+            ctx.lineWidth = 1;
+            for (let gx = 24; gx < LOGICAL_W - 24; gx += 32) {
+                ctx.beginPath(); ctx.moveTo(gx, 52); ctx.lineTo(gx, 580); ctx.stroke();
+            }
+            for (let gy = 52; gy < 580; gy += 32) {
+                ctx.beginPath(); ctx.moveTo(24, gy); ctx.lineTo(776, gy); ctx.stroke();
+            }
+
+            // Nomi delle stanze stampati sul pavimento
+            ROOM_LABELS.forEach(rl => {
+                drawText(rl.name, rl.x, rl.y, 13, 'center', pal.floorGrid);
+            });
+
+            // 2. Arredi retro
+            ctx.strokeStyle = pal.furniture;
+            ctx.fillStyle = pal.bg;
+            ctx.lineWidth = 2;
+            FURNITURE.forEach(f => {
+                ctx.fillRect(f.x, f.y, f.w, f.h);
+                ctx.strokeRect(f.x, f.y, f.w, f.h);
+            });
+
+            // 3. Nascondigli interattivi (Armadi, Sotto il letto, Tende, Casse)
+            const p = game.player;
+            HIDING_SPOTS.forEach(spot => {
+                const isNear = (p.nearHideSpot && p.nearHideSpot.id === spot.id);
+                const isInside = (p.hidingSpot && p.hidingSpot.id === spot.id);
+
+                ctx.save();
+                ctx.fillStyle = isInside ? pal.hideSpot : pal.bg;
+                ctx.strokeStyle = (isNear || isInside) ? pal.accent : pal.hideSpot;
+                ctx.lineWidth = (isNear || isInside) ? 3 : 1.8;
+
+                ctx.fillRect(spot.x, spot.y, spot.w, spot.h);
+                ctx.strokeRect(spot.x, spot.y, spot.w, spot.h);
+
+                // Feritoie stile armadio/casse
+                ctx.beginPath();
+                ctx.moveTo(spot.x + 6, spot.y + 8);
+                ctx.lineTo(spot.x + spot.w - 6, spot.y + 8);
+                ctx.moveTo(spot.x + 6, spot.y + spot.h - 8);
+                ctx.lineTo(spot.x + spot.w - 6, spot.y + spot.h - 8);
+                ctx.stroke();
+
+                if (isNear && !isInside && game.state === 'playing') {
+                    drawText('[SPAZIO] NASCONDITI', spot.x + spot.w / 2, spot.y - 12, 11, 'center', pal.accent);
+                }
+                ctx.restore();
+            });
+
+            // 4. Porta d'uscita (rossa/chiusa finché non hai tutte le chiavi, verde/aperta dopo)
+            const exitUnlocked = game.keysCollected >= game.keysRequired;
+            ctx.fillStyle = exitUnlocked ? pal.exitOpen : pal.exitLocked;
+            ctx.fillRect(EXIT_DOOR.x, EXIT_DOOR.y, EXIT_DOOR.w, EXIT_DOOR.h);
+            drawText(exitUnlocked ? 'USCITA APERTA' : 'USCITA BLOCCATA', EXIT_DOOR.x + EXIT_DOOR.w / 2, EXIT_DOOR.y - 11, 11, 'center', exitUnlocked ? pal.exitOpen : pal.text);
+
+            // 5. Oggetti Chiave luminosi
+            game.keys.forEach(k => {
+                if (k.collected) return;
+                const r = 6 + Math.sin(k.pulse) * 2;
+                ctx.save();
+                ctx.fillStyle = pal.keyColor;
+                ctx.shadowColor = pal.keyColor;
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(k.x, k.y, r, 0, Math.PI * 2);
+                ctx.fill();
+                // Denti della chiave
+                ctx.fillRect(k.x + 4, k.y - 2, 8, 4);
+                ctx.fillRect(k.x + 9, k.y + 2, 3, 4);
+                ctx.restore();
+            });
+
+            // 6. Onde sonore di rumore
+            game.noiseRipples.forEach(nr => {
+                ctx.save();
+                ctx.strokeStyle = pal.accent;
+                ctx.globalAlpha = Math.max(0, nr.alpha);
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(nr.x, nr.y, nr.r, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            });
+
+            // 7. ILLUMINAZIONE DINAMICA (CONI DI LUCE CON RAYCASTING)
+            const m = game.monster;
+            // Torcia rossa del mostro (sempre visibile quando illumina i corridoi)
+            drawLightCone(
+                m.x, m.y, m.angle,
+                Math.PI * 0.46, 225,
+                pal.monsterCone, 'rgba(0, 0, 0, 0)', 44
+            );
+
+            // Torcia / Campo visivo del giocatore (ristretto a fessura se sei nascosto)
+            if (p.hidingSpot) {
+                drawLightCone(
+                    p.x, p.y, p.angle,
+                    Math.PI * 0.24, 195,
+                    pal.playerCone, 'rgba(0, 0, 0, 0)', 26
+                );
+            } else {
+                drawLightCone(
+                    p.x, p.y, p.angle,
+                    Math.PI * 0.65, 250,
+                    pal.playerCone, 'rgba(0, 0, 0, 0)', 48
+                );
+            }
+
+            // 8. Disegna Giocatore (se non è dentro l'armadio)
+            if (!p.hidingSpot) {
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.angle);
+                ctx.fillStyle = pal.player;
+                ctx.shadowColor = pal.player;
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                // Fascio torcia direzionale
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(6, -3, 7, 6);
+                ctx.restore();
+            }
+
+            // 9. Disegna il Mostro (visibile se nel tuo cono visivo, nelle vicinanze o con occhi luminosi nel buio)
+            const distPM = Math.hypot(m.x - p.x, m.y - p.y);
+            const playerSeesMonster = (distPM < 255 && hasLineOfSight(p.x, p.y, m.x, m.y)) || distPM < 115;
+
+            ctx.save();
+            ctx.translate(m.x, m.y);
+            if (playerSeesMonster || game.state !== 'playing') {
+                ctx.fillStyle = pal.monster;
+                ctx.shadowColor = pal.monster;
+                ctx.shadowBlur = 14;
+                ctx.beginPath();
+                ctx.arc(0, 0, m.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            // Occhi luminosi inquietanti visibili anche nell'ombra
+            ctx.rotate(m.angle);
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = pal.monster;
+            ctx.shadowBlur = 10;
+            ctx.fillRect(6, -5, 4, 3);
+            ctx.fillRect(6, 2, 4, 3);
+            ctx.restore();
+
+            // Indicatore stato IA sopra il mostro ("?" Sospetto / "!" Caccia)
+            if (m.alertIcon) {
+                drawText(m.alertIcon, m.x, m.y - 24, 22, 'center', pal.monster);
+            }
+
+            // 10. Muri della casa con bagliore fosforo
+            ctx.save();
+            ctx.fillStyle = pal.wallFill;
+            ctx.strokeStyle = pal.wall;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = pal.wall;
+            ctx.shadowBlur = 6;
+            HOUSE_WALLS.forEach(w => {
+                ctx.fillRect(w.x, w.y, w.w, w.h);
+                ctx.strokeRect(w.x, w.y, w.w, w.h);
+            });
+            ctx.restore();
+
+            // 11. Vignettatura notturna attorno al giocatore (aumenta la tensione!)
+            const darkGrad = ctx.createRadialGradient(p.x, p.y, p.hidingSpot ? 65 : 110, p.x, p.y, p.hidingSpot ? 240 : 370);
+            darkGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            darkGrad.addColorStop(1, 'rgba(0, 0, 0, 0.78)');
+            ctx.fillStyle = darkGrad;
+            ctx.fillRect(0, HUD_H, LOGICAL_W, LOGICAL_H - HUD_H);
+
+            // 12. Barra Panico & Respiro quando sei nascosto dentro un armadio/sotto il letto
+            if (p.hidingSpot && game.state === 'playing') {
+                const boxW = 280, boxH = 54;
+                const bx = LOGICAL_W / 2 - boxW / 2;
+                const by = LOGICAL_H - 76;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+                ctx.fillRect(bx, by, boxW, boxH);
+                ctx.strokeStyle = pal.accent;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(bx, by, boxW, boxH);
+
+                drawText(`NASCOSTO IN: ${p.hidingSpot.label}`, LOGICAL_W / 2, by + 13, 12, 'center', pal.accent);
+
+                // Barra Panico
+                drawText('PANICO:', bx + 42, by + 30, 11, 'left', pal.text);
+                ctx.fillStyle = '#27272a';
+                ctx.fillRect(bx + 98, by + 25, 165, 9);
+                ctx.fillStyle = p.panic > 70 ? '#ef4444' : pal.accent;
+                ctx.fillRect(bx + 98, by + 25, (p.panic / 100) * 165, 9);
+
+                // Barra Respiro
+                drawText('RESPIRO:', bx + 42, by + 44, 11, 'left', pal.text);
+                ctx.fillStyle = '#27272a';
+                ctx.fillRect(bx + 98, by + 39, 165, 9);
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(bx + 98, by + 39, (p.breathStamina / 100) * 165, 9);
+            }
+
+            // 13. HUD SUPERIORE CHIARO E LEGGIBILE
+            ctx.fillStyle = pal.bg;
+            ctx.fillRect(0, 0, LOGICAL_W, HUD_H);
+            ctx.strokeStyle = pal.wall;
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, HUD_H); ctx.lineTo(LOGICAL_W, HUD_H); ctx.stroke();
+
+            const hrs = String(Math.floor(game.clockMinutes / 60)).padStart(2, '0');
+            const mins = String(Math.floor(game.clockMinutes % 60)).padStart(2, '0');
+
+            drawText(`NOTTE ${game.night} • ${hrs}:${mins} AM`, 16, 22, 15, 'left', pal.text);
+            drawText(`CHIAVI: ${game.keysCollected}/${game.keysRequired}`, LOGICAL_W / 2 - 40, 22, 16, 'center', exitUnlocked ? pal.exitOpen : pal.keyColor);
+            drawText(`PUNTI: ${String(game.score).padStart(5, '0')}`, LOGICAL_W - 16, 22, 15, 'right', pal.accent);
+
+            // 14. SCHERMATE SOVRAPPOSTE (TITOLO, PAUSA, FUGA RIUSCITA, CATTURATO)
+            if (game.state !== 'playing') {
+                ctx.fillStyle = 'rgba(2, 4, 10, 0.84)';
+                ctx.fillRect(65, 95, LOGICAL_W - 130, LOGICAL_H - 155);
+                ctx.strokeStyle = pal.accent;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(65, 95, LOGICAL_W - 130, LOGICAL_H - 155);
+
+                if (game.state === 'title') {
+                    drawText("NIGHT STALKER '79", LOGICAL_W / 2, 148, 34, 'center', pal.accent);
+                    drawText('UN MOSTRO SI AGGIRA NELLA CASA BUIA.', LOGICAL_W / 2, 195, 16, 'center', pal.text);
+                    drawText('1. Raccogli tutte le CHIAVI luminose nelle stanze.', LOGICAL_W / 2, 232, 14, 'center', pal.keyColor);
+                    drawText('2. Nasconditi negli ARMADI o SOTTO IL LETTO con SPAZIO.', LOGICAL_W / 2, 258, 14, 'center', pal.text);
+                    drawText('3. Tieni premuto SPAZIO per trattenere il respiro se si avvicina!', LOGICAL_W / 2, 284, 14, 'center', pal.text);
+                    drawText('4. Raggiungi la PORTA D\'USCITA VERDE in basso a sinistra.', LOGICAL_W / 2, 310, 14, 'center', pal.exitOpen);
+
+                    drawText(`RECORD: NOTTE ${recordData.maxNight}  •  PUNTEGGIO MAX: ${recordData.highScore}`, LOGICAL_W / 2, 358, 15, 'center', pal.accent);
+
+                    if (Math.floor(Date.now() / 450) % 2 === 0) {
+                        drawText('>>> PREMI SPAZIO O NASCONDI PER INIZIARE <<<', LOGICAL_W / 2, 412, 18, 'center', pal.accent);
+                    }
+                } else if (game.state === 'paused') {
+                    drawText('SIMULAZIONE IN PAUSA', LOGICAL_W / 2, 265, 30, 'center', pal.accent);
+                    drawText('PREMI [P] PER RIPRENDERE', LOGICAL_W / 2, 315, 17, 'center', pal.text);
+                } else if (game.state === 'escaped') {
+                    drawText(`NOTTE ${game.night} SUPERATA!`, LOGICAL_W / 2, 225, 34, 'center', pal.exitOpen);
+                    drawText('SEI FUGGITO DALLA CASA ILLESO!', LOGICAL_W / 2, 275, 18, 'center', pal.text);
+                    drawText(`PUNTEGGIO ATTUALE: ${game.score}`, LOGICAL_W / 2, 315, 18, 'center', pal.accent);
+                    if (Math.floor(Date.now() / 450) % 2 === 0) {
+                        drawText(`>>> PREMI SPAZIO PER LA NOTTE ${game.night + 1} <<<`, LOGICAL_W / 2, 385, 18, 'center', pal.accent);
+                    }
+                } else if (game.state === 'caught') {
+                    drawText('SEI STATO CATTURATO!', LOGICAL_W / 2, 225, 34, 'center', pal.monster);
+                    drawText(`SOPRAVVISSUTO FINO ALLA NOTTE ${game.night}`, LOGICAL_W / 2, 275, 18, 'center', pal.text);
+                    drawText(`PUNTEGGIO FINALE: ${game.score}  (RECORD: ${recordData.highScore})`, LOGICAL_W / 2, 315, 16, 'center', pal.accent);
+                    if (Math.floor(Date.now() / 450) % 2 === 0) {
+                        drawText('>>> PREMI SPAZIO PER RIPROVARE <<<', LOGICAL_W / 2, 385, 18, 'center', pal.text);
+                    }
+                }
+            }
+
+            ctx.restore();
+        }
+
+        /* ==========================================================================
+           9. LOOP PRINCIPALE DI RENDERING E AGGIORNAMENTO
+           ========================================================================== */
+        let lastTime = 0;
+
+        function mainLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+            lastTime = timestamp;
+
+            updateGame(dt);
+            renderScene();
+
+            requestAnimationFrame(mainLoop);
+        }
+
+        window.onload = function () {
+            resizeCanvas();
+            requestAnimationFrame(mainLoop);
+        };
+    </script>
+</body>
+</html>
